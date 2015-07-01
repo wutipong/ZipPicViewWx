@@ -6,6 +6,7 @@
 #include <wx/notebook.h>
 #include <wx/treectrl.h>
 #include <wx/progdlg.h>
+#include <wx/splitter.h>
 #include <archive.h>
 #include <archive_entry.h>
 #include <vector>
@@ -19,16 +20,20 @@ private:
   wxFilePickerCtrl *filePicker;
   wxNotebook *notebook;
   wxTreeCtrl *dirTree;
+  wxSplitterWindow *splitter;
 
   void OnFileSelected(wxFileDirPickerEvent &event);
+  void OnTreeSelectionChanged(wxTreeEvent &event);
+
   void BuildDirectoryTree(wxProgressDialog *progdlg);
   void AddTreeItemsFromPath(const wxTreeItemId &parent, const wxString &path);
+
+  std::vector<archive_entry *> GetFileEntries(const wxString &path);
 
   wxDECLARE_EVENT_TABLE();
 
   archive *archive = nullptr;
   std::vector<archive_entry *> entries;
-  std::vector<wxString> entryPaths;
 };
 
 #endif

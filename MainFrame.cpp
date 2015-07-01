@@ -1,6 +1,8 @@
 #include "MainFrame.h"
-#include <wx/splitter.h>
+#include <algorithm>
 #include <wx/log.h>
+
+enum MainFrameIds { ID_DIRECTORY_TREE = 1 };
 
 MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   auto statusBar = CreateStatusBar();
@@ -14,12 +16,13 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   outerSizer->Add(filePicker, 0, wxALL, 10);
   outerSizer->Add(notebook, 1, wxEXPAND | wxALL, 10);
 
-  auto splitter = new wxSplitterWindow(notebook, wxID_ANY);
-  dirTree = new wxTreeCtrl(splitter, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-                           wxTR_NO_LINES | wxTR_FULL_ROW_HIGHLIGHT |
-                               wxTR_ROW_LINES | wxTR_SINGLE);
-  splitter->SplitVertically(dirTree, new wxButton(splitter, wxID_ANY, "Test"),
-                            250);
+  splitter = new wxSplitterWindow(notebook, wxID_ANY);
+  dirTree = new wxTreeCtrl(
+      splitter, ID_DIRECTORY_TREE, wxDefaultPosition, wxDefaultSize,
+      wxTR_NO_LINES | wxTR_FULL_ROW_HIGHLIGHT | wxTR_ROW_LINES | wxTR_SINGLE);
+
+  auto rightWindow = new wxWindow(splitter, wxID_ANY);
+  splitter->SplitVertically(dirTree, rightWindow, 250);
 
   notebook->AddPage(splitter, "Browse");
   notebook->AddPage(new wxButton(notebook, wxID_ANY, "Test"), "2");
@@ -59,14 +62,14 @@ void MainFrame::OnFileSelected(wxFileDirPickerEvent &event) {
   while (archive_read_next_header(archive, &entry) == ARCHIVE_OK) {
     wxString entryPath = archive_entry_pathname(entry);
     entries.push_back(archive_entry_clone(entry));
-    entryPaths.push_back(entryPath);
+
     progressDlg->Pulse();
-    // wxLogDebug("Entry: %s", entryPath);
   }
 
   BuildDirectoryTree(progressDlg);
   dirTree->ExpandAll();
   progressDlg->Update(100);
+  dirTree->SelectItem(dirTree->GetRootItem());
 }
 
 void MainFrame::BuildDirectoryTree(wxProgressDialog *progdlg) {
@@ -83,7 +86,7 @@ void MainFrame::BuildDirectoryTree(wxProgressDialog *progdlg) {
 void MainFrame::AddTreeItemsFromPath(const wxTreeItemId &parent,
                                      const wxString &path) {
   auto name = path.BeforeFirst('/');
-  wxLogDebug("Current Name : %s ", name);
+
   wxTreeItemIdValue cookie;
   auto child = dirTree->GetFirstChild(parent, cookie);
   for (; child.IsOk(); child = dirTree->GetNextChild(parent, cookie)) {
@@ -95,14 +98,67 @@ void MainFrame::AddTreeItemsFromPath(const wxTreeItemId &parent,
   }
 
   auto childPath = path.AfterFirst('/');
-  wxLogDebug("Child Path : %s", childPath);
 
   if (childPath != "")
     AddTreeItemsFromPath(child, childPath);
 }
 
+std::vector<archive_entry *> MainFrame::GetFileEntries(const wxString &path) {
+  std::vector<archive_entry *> output;
+  for (auto entry : entries) {
+    if (archive_entry_filetype(entry) != AE_IFREG)
+      continue;
+
+    wxString entryPath = wxString(archive_entry_pathname(entry));
+
+    wxString childPath;
+    if (!entryPath.StartsWith(path, &childPath))
+      continue;
+
+    if (childPath.Contains('/'))
+      continue;
+
+    if (!childPath.EndsWith(".jpg") && !childPath.EndsWith(".jpeg") &&
+        !childPath.EndsWith(".png"))
+      continue;
+
+    output.push_back(entry);
+  }
+
+  std::sort(output.begin(), output.end(),
+            [](archive_entry *entry1, archive_entry *entry2) {
+              return wxString(archive_entry_pathname(entry1)) <
+                     wxString(archive_entry_pathname(entry2));
+            });
+
+  return output;
+}
+
+void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
+  auto treeItemId = event.GetItem();
+  auto rootId = dirTree->GetRootItem();
+  wxString path;
+
+  for (auto id = treeItemId; id != rootId; id = dirTree->GetItemParent(id)) {
+    path = dirTree->GetItemText(id) + "/" + path;
+  }
+
+  auto fileEntries = GetFileEntries(path);
+  auto grid = new wxGridSizer(5);
+  auto rightWindow = new wxWindow(splitter, wxID_ANY);
+  splitter->ReplaceWindow(splitter->GetWindow2(), rightWindow);
+  for (auto entry : fileEntries) {
+    auto text = new wxStaticText(rightWindow, wxID_ANY,
+                                 wxString(archive_entry_pathname(entry)));
+    grid->Add(text);
+  }
+
+  rightWindow->SetSizer(grid);
+}
+
 // clang-format off
 wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
   EVT_FILEPICKER_CHANGED(wxID_OPEN, MainFrame::OnFileSelected)
+  EVT_TREE_SEL_CHANGED(ID_DIRECTORY_TREE, MainFrame::OnTreeSelectionChanged)
 wxEND_EVENT_TABLE();
 // clang-format on
