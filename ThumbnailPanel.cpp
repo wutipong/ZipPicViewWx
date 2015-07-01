@@ -1,6 +1,10 @@
 #include "ThumbnailPanel.h"
 
-ThumbnailPanel::ThumbnailPanel(const wxString &label, const wxImage &image) {
+ThumbnailPanel::ThumbnailPanel(wxWindow *parent, wxWindowID id,
+                               const wxString &label, const wxImage &image,
+                               const wxPoint &pos, const wxSize &size,
+                               long style, const wxString &name)
+    : wxWindow(parent, id, pos, size, style, name) {
   auto sizer = new wxBoxSizer(wxVERTICAL);
   auto thumbnailImage = image.Scale(200, 200);
   bitmapCtl = new wxStaticBitmap(this, wxID_ANY, wxBitmap(thumbnailImage));

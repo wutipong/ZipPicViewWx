@@ -7,8 +7,7 @@
 #include <wx/treectrl.h>
 #include <wx/progdlg.h>
 #include <wx/splitter.h>
-#include <archive.h>
-#include <archive_entry.h>
+#include <zip.h>
 #include <vector>
 
 class MainFrame : public wxFrame {
@@ -28,12 +27,12 @@ private:
   void BuildDirectoryTree(wxProgressDialog *progdlg);
   void AddTreeItemsFromPath(const wxTreeItemId &parent, const wxString &path);
 
-  std::vector<archive_entry *> GetFileEntries(const wxString &path);
-
+  std::vector<wxString> GetFileEntries(const wxString &parent);
+  wxImage LoadImage(wxString innerFile);
   wxDECLARE_EVENT_TABLE();
 
-  archive *archive = nullptr;
-  std::vector<archive_entry *> entries;
+  zip_t *zipFile = nullptr;
+  std::vector<wxString> paths;
 };
 
 #endif

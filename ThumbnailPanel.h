@@ -3,9 +3,12 @@
 #include <wx/wx.h>
 #include <memory>
 
-class ThumbnailPanel : public wxControl {
+class ThumbnailPanel : public wxWindow {
 public:
-  ThumbnailPanel(const wxString &label, const wxImage &image);
+  ThumbnailPanel(wxWindow *parent, wxWindowID id, const wxString &label,
+                 const wxImage &image, const wxPoint &pos = wxDefaultPosition,
+                 const wxSize &size = wxDefaultSize, long style = 0,
+                 const wxString &name = "ThumbnailPanel");
 
 private:
   wxStaticText *textCtl;

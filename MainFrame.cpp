@@ -1,6 +1,8 @@
 #include "MainFrame.h"
 #include <algorithm>
 #include <wx/log.h>
+#include <wx/mstream.h>
+#include "ThumbnailPanel.h"
 
 enum MainFrameIds { ID_DIRECTORY_TREE = 1 };
 
@@ -31,38 +33,32 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
 }
 
 MainFrame::~MainFrame() {
-  if (archive)
-    archive_read_close(archive);
+  if (zipFile)
+    zip_close(zipFile);
 }
 
 void MainFrame::OnFileSelected(wxFileDirPickerEvent &event) {
   auto path = event.GetPath();
-  wxLogDebug("Reading File %s", path);
 
-  auto archive = archive_read_new();
-  archive_read_support_filter_all(archive);
-  archive_read_support_format_all(archive);
+  int error;
+  auto zipFile = zip_open(path, ZIP_RDONLY, &error);
 
-  auto result = archive_read_open_filename(archive, path, 10240);
-  if (result != ARCHIVE_OK) {
-    throw result;
+  if (zipFile == nullptr) {
+    throw error;
   }
-  if (MainFrame::archive) {
-    for (auto entry : entries) {
-      archive_entry_free(entry);
-    }
-    archive_read_close(MainFrame::archive);
+
+  if (MainFrame::zipFile) {
+    paths.clear();
+    zip_close(zipFile);
   }
 
   auto progressDlg = new wxProgressDialog("Loading", "Please Wait");
-  MainFrame::archive = archive;
+  MainFrame::zipFile = zipFile;
 
-  archive_entry *entry;
-  entries.clear();
-  while (archive_read_next_header(archive, &entry) == ARCHIVE_OK) {
-    wxString entryPath = archive_entry_pathname(entry);
-    entries.push_back(archive_entry_clone(entry));
-
+  int num_entries = zip_get_num_entries(zipFile, ZIP_FL_UNCHANGED);
+  for (int i = 0; i < num_entries; i++) {
+    auto path = wxString(zip_get_name(zipFile, i, ZIP_FL_UNCHANGED));
+    paths.push_back(path);
     progressDlg->Pulse();
   }
 
@@ -75,11 +71,11 @@ void MainFrame::OnFileSelected(wxFileDirPickerEvent &event) {
 void MainFrame::BuildDirectoryTree(wxProgressDialog *progdlg) {
   dirTree->DeleteAllItems();
   auto root = dirTree->AddRoot("/");
-  for (auto entry : entries) {
+  for (auto path : paths) {
     progdlg->Pulse();
-    if (archive_entry_filetype(entry) != AE_IFDIR)
+    if (!path.EndsWith('/'))
       continue;
-    AddTreeItemsFromPath(root, wxString(archive_entry_pathname(entry)));
+    AddTreeItemsFromPath(root, path);
   }
 }
 
@@ -103,16 +99,14 @@ void MainFrame::AddTreeItemsFromPath(const wxTreeItemId &parent,
     AddTreeItemsFromPath(child, childPath);
 }
 
-std::vector<archive_entry *> MainFrame::GetFileEntries(const wxString &path) {
-  std::vector<archive_entry *> output;
-  for (auto entry : entries) {
-    if (archive_entry_filetype(entry) != AE_IFREG)
+std::vector<wxString> MainFrame::GetFileEntries(const wxString &parent) {
+  std::vector<wxString> output;
+  for (auto path : paths) {
+    if (path.EndsWith('/'))
       continue;
 
-    wxString entryPath = wxString(archive_entry_pathname(entry));
-
     wxString childPath;
-    if (!entryPath.StartsWith(path, &childPath))
+    if (!path.StartsWith(parent, &childPath))
       continue;
 
     if (childPath.Contains('/'))
@@ -122,14 +116,10 @@ std::vector<archive_entry *> MainFrame::GetFileEntries(const wxString &path) {
         !childPath.EndsWith(".png"))
       continue;
 
-    output.push_back(entry);
+    output.push_back(path);
   }
 
-  std::sort(output.begin(), output.end(),
-            [](archive_entry *entry1, archive_entry *entry2) {
-              return wxString(archive_entry_pathname(entry1)) <
-                     wxString(archive_entry_pathname(entry2));
-            });
+  std::sort(output.begin(), output.end());
 
   return output;
 }
@@ -147,13 +137,32 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
   auto grid = new wxGridSizer(5);
   auto rightWindow = new wxWindow(splitter, wxID_ANY);
   splitter->ReplaceWindow(splitter->GetWindow2(), rightWindow);
-  for (auto entry : fileEntries) {
-    auto text = new wxStaticText(rightWindow, wxID_ANY,
-                                 wxString(archive_entry_pathname(entry)));
-    grid->Add(text);
+  for (auto path : fileEntries) {
+    auto image = LoadImage(path);
+    auto ctrl =
+        new ThumbnailPanel(rightWindow, wxID_ANY, path.AfterLast('/'), image);
+    grid->Add(ctrl);
   }
 
-  rightWindow->SetSizer(grid);
+  rightWindow->SetSizerAndFit(grid);
+}
+
+wxImage MainFrame::LoadImage(wxString innerFile) {
+  struct zip_stat stat;
+  zip_stat(zipFile, innerFile, 0, &stat);
+
+  auto file = zip_fopen(zipFile, innerFile, 0);
+  auto size = stat.size;
+  auto buffer = new unsigned char[size];
+  auto read = zip_fread(file, buffer, size);
+
+  wxMemoryInputStream stream(buffer, size);
+
+  wxImage output(stream);
+
+  delete[] buffer;
+  auto ok = output.IsOk();
+  return output;
 }
 
 // clang-format off

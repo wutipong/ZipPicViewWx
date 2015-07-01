@@ -6,8 +6,9 @@ add_executable(ZipPicView MainFrame.cpp ZipPicViewApp.cpp ThumbnailPanel.cpp)
 
 set(wxWidgets_CONFIGURATION mswu)
 find_package(wxWidgets COMPONENTS core base REQUIRED)
-find_package(LibArchive REQUIRED)
-include(${wxWidgets_USE_FILE} ${LibArchive_INCLUDE_DIRS})
+find_package(PkgConfig REQUIRED)
+pkg_check_modules (LIBZIP REQUIRED libzip)
 
-target_link_libraries(${PROJECT_NAME}
-    ${wxWidgets_LIBRARIES} ${LibArchive_LIBRARIES})
+include(${wxWidgets_USE_FILE} ${LIBZIP_CFLAGS})
+
+target_link_libraries(${PROJECT_NAME} ${wxWidgets_LIBRARIES} ${LIBZIP_LIBRARIES})
