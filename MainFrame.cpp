@@ -3,7 +3,6 @@
 #include <wx/log.h>
 #include <wx/mstream.h>
 #include <wx/button.h>
-#include "ThumbnailPanel.h"
 
 enum MainFrameIds { ID_DIRECTORY_TREE = 1, ID_IMAGE_BUTTON };
 
