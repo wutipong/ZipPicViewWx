@@ -2,9 +2,10 @@
 #include <algorithm>
 #include <wx/log.h>
 #include <wx/mstream.h>
+#include <wx/button.h>
 #include "ThumbnailPanel.h"
 
-enum MainFrameIds { ID_DIRECTORY_TREE = 1 };
+enum MainFrameIds { ID_DIRECTORY_TREE = 1, ID_IMAGE_BUTTON };
 
 MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   auto statusBar = CreateStatusBar();
@@ -23,11 +24,10 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
       splitter, ID_DIRECTORY_TREE, wxDefaultPosition, wxDefaultSize,
       wxTR_NO_LINES | wxTR_FULL_ROW_HIGHLIGHT | wxTR_ROW_LINES | wxTR_SINGLE);
 
-  auto rightWindow = new wxWindow(splitter, wxID_ANY);
+  auto rightWindow = new wxScrolledCanvas(splitter, wxID_ANY);
   splitter->SplitVertically(dirTree, rightWindow, 250);
 
   notebook->AddPage(splitter, "Browse");
-  notebook->AddPage(new wxButton(notebook, wxID_ANY, "Test"), "2");
 
   SetSizer(outerSizer);
 }
@@ -49,7 +49,7 @@ void MainFrame::OnFileSelected(wxFileDirPickerEvent &event) {
 
   if (MainFrame::zipFile) {
     paths.clear();
-    zip_close(zipFile);
+    zip_close(MainFrame::zipFile);
   }
 
   auto progressDlg = new wxProgressDialog("Loading", "Please Wait");
@@ -59,20 +59,19 @@ void MainFrame::OnFileSelected(wxFileDirPickerEvent &event) {
   for (int i = 0; i < num_entries; i++) {
     auto path = wxString(zip_get_name(zipFile, i, ZIP_FL_UNCHANGED));
     paths.push_back(path);
-    progressDlg->Pulse();
+    // progressDlg->Pulse();
   }
 
-  BuildDirectoryTree(progressDlg);
+  BuildDirectoryTree();
   dirTree->ExpandAll();
   progressDlg->Update(100);
   dirTree->SelectItem(dirTree->GetRootItem());
 }
 
-void MainFrame::BuildDirectoryTree(wxProgressDialog *progdlg) {
+void MainFrame::BuildDirectoryTree() {
   dirTree->DeleteAllItems();
   auto root = dirTree->AddRoot("/");
   for (auto path : paths) {
-    progdlg->Pulse();
     if (!path.EndsWith('/'))
       continue;
     AddTreeItemsFromPath(root, path);
@@ -125,26 +124,47 @@ std::vector<wxString> MainFrame::GetFileEntries(const wxString &parent) {
 }
 
 void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
+  auto progressDlg = new wxProgressDialog("Loading", "Please Wait");
+  // progressDlg->ShowModal();
   auto treeItemId = event.GetItem();
   auto rootId = dirTree->GetRootItem();
   wxString path;
-
+  progressDlg->Pulse();
   for (auto id = treeItemId; id != rootId; id = dirTree->GetItemParent(id)) {
     path = dirTree->GetItemText(id) + "/" + path;
   }
 
   auto fileEntries = GetFileEntries(path);
+  progressDlg->Pulse();
   auto grid = new wxGridSizer(5);
-  auto rightWindow = new wxWindow(splitter, wxID_ANY);
-  splitter->ReplaceWindow(splitter->GetWindow2(), rightWindow);
+  auto rightWindow = new wxScrolledCanvas(splitter, wxID_ANY);
+
   for (auto path : fileEntries) {
+
     auto image = LoadImage(path);
+    imageMap[path] = image;
     auto ctrl =
-        new ThumbnailPanel(rightWindow, wxID_ANY, path.AfterLast('/'), image);
-    grid->Add(ctrl);
+        new wxButton(rightWindow, ID_IMAGE_BUTTON); //, path.AfterLast('/'));
+    int longerSide = image.GetWidth() > image.GetHeight() ? image.GetWidth()
+                                                          : image.GetHeight();
+    int width = 200 * image.GetWidth() / longerSide;
+    int height = 200 * image.GetHeight() / longerSide;
+    auto thumbnailImage = image.Scale(width, height, wxIMAGE_QUALITY_HIGH);
+
+    ctrl->SetBitmap(thumbnailImage, wxBOTTOM);
+    ctrl->SetClientObject(new wxStringClientData(path));
+    // new ThumbnailPanel(rightWindow, wxID_ANY, path.AfterLast('/'),
+    // image);
+    grid->Add(ctrl, 0, wxALL | wxEXPAND, 5);
+    progressDlg->Pulse();
   }
 
-  rightWindow->SetSizerAndFit(grid);
+  splitter->ReplaceWindow(splitter->GetWindow2(), rightWindow);
+  rightWindow->SetSizer(grid);
+  rightWindow->SetScrollRate(10, 10);
+  // rightWindow->FitInside();
+  grid->FitInside(rightWindow);
+  progressDlg->Update(100);
 }
 
 wxImage MainFrame::LoadImage(wxString innerFile) {
@@ -165,9 +185,20 @@ wxImage MainFrame::LoadImage(wxString innerFile) {
   return output;
 }
 
+void MainFrame::OnImageButtonClick(wxCommandEvent &event) {
+  auto button = dynamic_cast<wxButton *>(event.GetEventObject());
+  auto clientData =
+      dynamic_cast<wxStringClientData *>(button->GetClientObject());
+  auto path = clientData->GetData();
+
+  auto bitmapCtl = new wxStaticBitmap(notebook, wxID_ANY, imageMap[path]);
+  notebook->AddPage(bitmapCtl, path.AfterLast('/'));
+}
+
 // clang-format off
 wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
   EVT_FILEPICKER_CHANGED(wxID_OPEN, MainFrame::OnFileSelected)
   EVT_TREE_SEL_CHANGED(ID_DIRECTORY_TREE, MainFrame::OnTreeSelectionChanged)
+  EVT_BUTTON(ID_IMAGE_BUTTON, MainFrame::OnImageButtonClick)
 wxEND_EVENT_TABLE();
 // clang-format on

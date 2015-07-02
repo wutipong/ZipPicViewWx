@@ -7,8 +7,10 @@
 #include <wx/treectrl.h>
 #include <wx/progdlg.h>
 #include <wx/splitter.h>
+
 #include <zip.h>
 #include <vector>
+#include <map>
 
 class MainFrame : public wxFrame {
 public:
@@ -23,11 +25,15 @@ private:
 
   void OnFileSelected(wxFileDirPickerEvent &event);
   void OnTreeSelectionChanged(wxTreeEvent &event);
+  void OnImageButtonClick(wxCommandEvent &event);
 
-  void BuildDirectoryTree(wxProgressDialog *progdlg);
+  void BuildDirectoryTree();
   void AddTreeItemsFromPath(const wxTreeItemId &parent, const wxString &path);
 
   std::vector<wxString> GetFileEntries(const wxString &parent);
+
+  std::map<wxString, wxImage> imageMap;
+
   wxImage LoadImage(wxString innerFile);
   wxDECLARE_EVENT_TABLE();
 
