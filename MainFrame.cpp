@@ -3,6 +3,7 @@
 #include <wx/log.h>
 #include <wx/mstream.h>
 #include <wx/button.h>
+#include "ImageViewPanel.h"
 
 enum MainFrameIds { ID_DIRECTORY_TREE = 1, ID_IMAGE_BUTTON };
 
@@ -23,7 +24,7 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
       splitter, ID_DIRECTORY_TREE, wxDefaultPosition, wxDefaultSize,
       wxTR_NO_LINES | wxTR_FULL_ROW_HIGHLIGHT | wxTR_ROW_LINES | wxTR_SINGLE);
 
-  auto rightWindow = new wxScrolledCanvas(splitter, wxID_ANY);
+  auto rightWindow = new wxScrolledWindow(splitter, wxID_ANY);
   splitter->SplitVertically(dirTree, rightWindow, 250);
 
   notebook->AddPage(splitter, "Browse");
@@ -58,7 +59,6 @@ void MainFrame::OnFileSelected(wxFileDirPickerEvent &event) {
   for (int i = 0; i < num_entries; i++) {
     auto path = wxString(zip_get_name(zipFile, i, ZIP_FL_UNCHANGED));
     paths.push_back(path);
-    // progressDlg->Pulse();
   }
 
   BuildDirectoryTree();
@@ -136,14 +136,13 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
   auto fileEntries = GetFileEntries(path);
   progressDlg->Pulse();
   auto grid = new wxGridSizer(5);
-  auto rightWindow = new wxScrolledCanvas(splitter, wxID_ANY);
+  auto rightWindow = new wxScrolledWindow(splitter, wxID_ANY);
 
   for (auto path : fileEntries) {
 
     auto image = LoadImage(path);
     imageMap[path] = image;
-    auto ctrl =
-        new wxButton(rightWindow, ID_IMAGE_BUTTON); //, path.AfterLast('/'));
+    auto ctrl = new wxButton(rightWindow, ID_IMAGE_BUTTON);
     int longerSide = image.GetWidth() > image.GetHeight() ? image.GetWidth()
                                                           : image.GetHeight();
     int width = 200 * image.GetWidth() / longerSide;
@@ -152,16 +151,19 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
 
     ctrl->SetBitmap(thumbnailImage, wxBOTTOM);
     ctrl->SetClientObject(new wxStringClientData(path));
-    // new ThumbnailPanel(rightWindow, wxID_ANY, path.AfterLast('/'),
-    // image);
-    grid->Add(ctrl, 0, wxALL | wxEXPAND, 5);
+
+    auto btnSizer = new wxBoxSizer(wxVERTICAL);
+    btnSizer->Add(ctrl, 0, wxEXPAND);
+    btnSizer->Add(new wxStaticText(rightWindow, wxID_ANY, path.AfterLast('/')));
+
+    grid->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
     progressDlg->Pulse();
   }
 
   splitter->ReplaceWindow(splitter->GetWindow2(), rightWindow);
   rightWindow->SetSizer(grid);
   rightWindow->SetScrollRate(10, 10);
-  // rightWindow->FitInside();
+
   grid->FitInside(rightWindow);
   progressDlg->Update(100);
 }
@@ -190,7 +192,9 @@ void MainFrame::OnImageButtonClick(wxCommandEvent &event) {
       dynamic_cast<wxStringClientData *>(button->GetClientObject());
   auto path = clientData->GetData();
 
-  auto bitmapCtl = new wxStaticBitmap(notebook, wxID_ANY, imageMap[path]);
+  auto page = notebook->GetPageCount();
+
+  auto bitmapCtl = new ImageViewPanel(notebook, imageMap[path], page);
   notebook->AddPage(bitmapCtl, path.AfterLast('/'));
 }
 

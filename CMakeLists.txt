@@ -2,7 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 project (ZipPicView CXX)
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(ZipPicView MainFrame.cpp ZipPicViewApp.cpp)
+add_executable(ZipPicView MainFrame.cpp ZipPicViewApp.cpp ImageViewPanel.cpp)
 
 set(wxWidgets_CONFIGURATION mswu)
 find_package(wxWidgets COMPONENTS core base REQUIRED)
