@@ -9,6 +9,7 @@ find_package(wxWidgets COMPONENTS core base REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules (LIBZIP REQUIRED libzip)
 
-include(${wxWidgets_USE_FILE} ${LIBZIP_CFLAGS})
+include(${wxWidgets_USE_FILE} )
+include_directories(${LIBZIP_INCLUDE_DIRS})
 
 target_link_libraries(${PROJECT_NAME} ${wxWidgets_LIBRARIES} ${LIBZIP_LIBRARIES})

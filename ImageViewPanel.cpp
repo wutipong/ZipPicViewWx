@@ -14,7 +14,7 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, const wxImage &image,
   outerSizer->Add(btnSizer, 0, wxALL, 10);
 
   wxScrolledWindow *scrollPanel = new wxScrolledWindow(this, wxID_ANY);
-  wxStaticBitmap *bitmap = new wxStaticBitmap(scrollPanel, wxID_ANY, image);
+  wxStaticBitmap *bitmap = new wxStaticBitmap(scrollPanel, wxID_ANY, wxBitmap(image));
   auto scrollSizer = new wxBoxSizer(wxVERTICAL);
   scrollSizer->Add(bitmap);
   scrollPanel->SetSizerAndFit(scrollSizer);

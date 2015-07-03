@@ -16,7 +16,7 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   notebook = new wxNotebook(this, wxID_ANY);
   filePicker = new wxFilePickerCtrl(this, wxID_OPEN, wxEmptyString,
                                     wxFileSelectorPromptStr, "*.zip");
-  outerSizer->Add(filePicker, 0, wxALL, 10);
+  outerSizer->Add(filePicker, 0, wxEXPAND| wxALL, 10);
   outerSizer->Add(notebook, 1, wxEXPAND | wxALL, 10);
 
   splitter = new wxSplitterWindow(notebook, wxID_ANY);
