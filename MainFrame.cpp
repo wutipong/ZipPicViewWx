@@ -162,6 +162,7 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
 
     button->SetBitmap(thumbnailImage, wxBOTTOM);
     button->SetClientObject(new wxStringClientData(path));
+    button->SetMinSize({250, 250});
 
     auto btnSizer = new wxBoxSizer(wxVERTICAL);
     btnSizer->Add(button, 0, wxEXPAND);
@@ -204,4 +205,5 @@ void MainFrame::OnImageButtonClick(wxCommandEvent &event) {
 
   auto bitmapCtl = new ImageViewPanel(notebook, imageMap[path]);
   notebook->AddPage(bitmapCtl, path.AfterLast('/'));
+  notebook->SetSelection(page);
 }
