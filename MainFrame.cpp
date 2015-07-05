@@ -16,15 +16,24 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   notebook = new wxNotebook(this, wxID_ANY);
   filePicker = new wxFilePickerCtrl(this, wxID_OPEN, wxEmptyString,
                                     wxFileSelectorPromptStr, "*.zip");
-  outerSizer->Add(filePicker, 0, wxEXPAND| wxALL, 10);
+  filePicker->Bind(wxEVT_FILEPICKER_CHANGED, &MainFrame::OnFileSelected, this,
+                   wxID_OPEN);
+  if (filePicker->HasTextCtrl())
+    filePicker->GetTextCtrl()->Disable();
+
+  outerSizer->Add(filePicker, 0, wxEXPAND | wxALL, 10);
   outerSizer->Add(notebook, 1, wxEXPAND | wxALL, 10);
 
   splitter = new wxSplitterWindow(notebook, wxID_ANY);
   dirTree = new wxTreeCtrl(
       splitter, ID_DIRECTORY_TREE, wxDefaultPosition, wxDefaultSize,
       wxTR_NO_LINES | wxTR_FULL_ROW_HIGHLIGHT | wxTR_ROW_LINES | wxTR_SINGLE);
-
+  dirTree->Bind(wxEVT_TREE_SEL_CHANGED, &MainFrame::OnTreeSelectionChanged,
+                this, ID_DIRECTORY_TREE);
   auto rightWindow = new wxScrolledWindow(splitter, wxID_ANY);
+  auto grid = new wxGridSizer(5);
+  rightWindow->SetSizer(grid);
+  rightWindow->SetScrollRate(10, 10);
   splitter->SplitVertically(dirTree, rightWindow, 250);
 
   notebook->AddPage(splitter, "Browse");
@@ -124,7 +133,7 @@ std::vector<wxString> MainFrame::GetFileEntries(const wxString &parent) {
 
 void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
   auto progressDlg = new wxProgressDialog("Loading", "Please Wait");
-  // progressDlg->ShowModal();
+
   auto treeItemId = event.GetItem();
   auto rootId = dirTree->GetRootItem();
   wxString path;
@@ -135,36 +144,35 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
 
   auto fileEntries = GetFileEntries(path);
   progressDlg->Pulse();
-  auto grid = new wxGridSizer(5);
-  auto rightWindow = new wxScrolledWindow(splitter, wxID_ANY);
+  auto grid = splitter->GetWindow2()->GetSizer();
+  grid->Clear(true);
 
   for (auto path : fileEntries) {
 
     auto image = LoadImage(path);
     imageMap[path] = image;
-    auto ctrl = new wxButton(rightWindow, ID_IMAGE_BUTTON);
+    auto button = new wxButton(splitter->GetWindow2(), wxID_ANY);
+    button->Bind(wxEVT_BUTTON, &MainFrame::OnImageButtonClick, this);
+
     int longerSide = image.GetWidth() > image.GetHeight() ? image.GetWidth()
                                                           : image.GetHeight();
     int width = 200 * image.GetWidth() / longerSide;
     int height = 200 * image.GetHeight() / longerSide;
     auto thumbnailImage = image.Scale(width, height, wxIMAGE_QUALITY_HIGH);
 
-    ctrl->SetBitmap(thumbnailImage, wxBOTTOM);
-    ctrl->SetClientObject(new wxStringClientData(path));
+    button->SetBitmap(thumbnailImage, wxBOTTOM);
+    button->SetClientObject(new wxStringClientData(path));
 
     auto btnSizer = new wxBoxSizer(wxVERTICAL);
-    btnSizer->Add(ctrl, 0, wxEXPAND);
-    btnSizer->Add(new wxStaticText(rightWindow, wxID_ANY, path.AfterLast('/')));
+    btnSizer->Add(button, 0, wxEXPAND);
+    btnSizer->Add(new wxStaticText(splitter->GetWindow2(), wxID_ANY,
+                                   path.AfterLast('/')));
 
     grid->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
     progressDlg->Pulse();
   }
 
-  splitter->ReplaceWindow(splitter->GetWindow2(), rightWindow);
-  rightWindow->SetSizer(grid);
-  rightWindow->SetScrollRate(10, 10);
-
-  grid->FitInside(rightWindow);
+  grid->FitInside(splitter->GetWindow2());
   progressDlg->Update(100);
 }
 
@@ -194,14 +202,6 @@ void MainFrame::OnImageButtonClick(wxCommandEvent &event) {
 
   auto page = notebook->GetPageCount();
 
-  auto bitmapCtl = new ImageViewPanel(notebook, imageMap[path], page);
+  auto bitmapCtl = new ImageViewPanel(notebook, imageMap[path]);
   notebook->AddPage(bitmapCtl, path.AfterLast('/'));
 }
-
-// clang-format off
-wxBEGIN_EVENT_TABLE(MainFrame, wxFrame)
-  EVT_FILEPICKER_CHANGED(wxID_OPEN, MainFrame::OnFileSelected)
-  EVT_TREE_SEL_CHANGED(ID_DIRECTORY_TREE, MainFrame::OnTreeSelectionChanged)
-  EVT_BUTTON(ID_IMAGE_BUTTON, MainFrame::OnImageButtonClick)
-wxEND_EVENT_TABLE();
-// clang-format on

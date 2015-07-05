@@ -5,7 +5,7 @@
 
 class ImageViewPanel : public wxPanel {
 public:
-  ImageViewPanel(wxWindow *parent, const wxImage &image, const size_t page,
+  ImageViewPanel(wxWindow *parent, const wxImage &image,
                  wxWindowID id = wxID_ANY,
                  const wxPoint &pos = wxDefaultPosition,
                  const wxSize &size = wxDefaultSize,
@@ -16,7 +16,6 @@ private:
   size_t page;
   wxButton *btnClose;
   void OnCloseButtonClick(wxCommandEvent &event);
-  wxDECLARE_EVENT_TABLE();
 };
 
 #endif

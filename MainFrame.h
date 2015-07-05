@@ -35,7 +35,6 @@ private:
   std::map<wxString, wxImage> imageMap;
 
   wxImage LoadImage(wxString innerFile);
-  wxDECLARE_EVENT_TABLE();
 
   zip_t *zipFile = nullptr;
   std::vector<wxString> paths;
