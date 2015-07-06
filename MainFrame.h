@@ -26,6 +26,7 @@ private:
   void OnFileSelected(wxFileDirPickerEvent &event);
   void OnTreeSelectionChanged(wxTreeEvent &event);
   void OnImageButtonClick(wxCommandEvent &event);
+  void OnGridPanelSize(wxSizeEvent &event);
 
   void BuildDirectoryTree();
   void AddTreeItemsFromPath(const wxTreeItemId &parent, const wxString &path);

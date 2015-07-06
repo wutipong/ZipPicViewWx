@@ -34,6 +34,7 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   auto grid = new wxGridSizer(5);
   rightWindow->SetSizer(grid);
   rightWindow->SetScrollRate(10, 10);
+  rightWindow->Bind(wxEVT_SIZE, &MainFrame::OnGridPanelSize, this);
   splitter->SplitVertically(dirTree, rightWindow, 250);
 
   notebook->AddPage(splitter, "Browse");
@@ -73,6 +74,7 @@ void MainFrame::OnFileSelected(wxFileDirPickerEvent &event) {
   BuildDirectoryTree();
   dirTree->ExpandAll();
   progressDlg->Update(100);
+  dirTree->UnselectAll();
   dirTree->SelectItem(dirTree->GetRootItem());
 }
 
@@ -144,14 +146,15 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
 
   auto fileEntries = GetFileEntries(path);
   progressDlg->Pulse();
-  auto grid = splitter->GetWindow2()->GetSizer();
+  auto gridPanel = dynamic_cast<wxScrolledWindow *>(splitter->GetWindow2());
+  auto grid = gridPanel->GetSizer();
   grid->Clear(true);
 
   for (auto path : fileEntries) {
 
     auto image = LoadImage(path);
 
-    auto button = new wxButton(splitter->GetWindow2(), wxID_ANY);
+    auto button = new wxButton(gridPanel, wxID_ANY);
     button->Bind(wxEVT_BUTTON, &MainFrame::OnImageButtonClick, this);
 
     int longerSide = image.GetWidth() > image.GetHeight() ? image.GetWidth()
@@ -166,14 +169,14 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
 
     auto btnSizer = new wxBoxSizer(wxVERTICAL);
     btnSizer->Add(button, 0, wxEXPAND);
-    btnSizer->Add(new wxStaticText(splitter->GetWindow2(), wxID_ANY,
-                                   path.AfterLast('/')));
+    btnSizer->Add(new wxStaticText(gridPanel, wxID_ANY, path.AfterLast('/')));
 
     grid->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
     progressDlg->Pulse();
   }
 
-  grid->FitInside(splitter->GetWindow2());
+  grid->FitInside(gridPanel);
+  gridPanel->Scroll(0, 0);
   progressDlg->Update(100);
 }
 
@@ -206,4 +209,13 @@ void MainFrame::OnImageButtonClick(wxCommandEvent &event) {
   auto bitmapCtl = new ImageViewPanel(notebook, LoadImage(path));
   notebook->AddPage(bitmapCtl, path.AfterLast('/'));
   notebook->SetSelection(page);
+}
+
+void MainFrame::OnGridPanelSize(wxSizeEvent &event) {
+  auto grid = dynamic_cast<wxGridSizer *>(splitter->GetWindow2()->GetSizer());
+  auto size = event.GetSize();
+  int col = (size.GetWidth() / 250);
+  grid->SetCols(col > 0 ? col : 1);
+
+  grid->FitInside(splitter->GetWindow2());
 }
