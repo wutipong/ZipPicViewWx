@@ -1,5 +1,6 @@
 #include "ZipPicViewApp.h"
 #include <wx/image.h>
+
 #include "MainFrame.h"
 
 wxIMPLEMENT_APP(ZipPicViewApp);
