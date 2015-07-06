@@ -32,8 +32,6 @@ private:
 
   std::vector<wxString> GetFileEntries(const wxString &parent);
 
-  std::map<wxString, wxImage> imageMap;
-
   wxImage LoadImage(wxString innerFile);
 
   zip_t *zipFile = nullptr;

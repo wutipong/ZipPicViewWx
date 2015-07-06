@@ -13,9 +13,14 @@ public:
                  const wxString &name = "ImageViewPanel");
 
 private:
-  size_t page;
   wxButton *btnClose;
+  wxStaticBitmap *bitmap;
+  wxScrolledWindow *scrollPanel;
+  wxBoxSizer *scrollSizer;
+  wxImage image;
+
   void OnCloseButtonClick(wxCommandEvent &event);
+  void OnScaleValueChanged(wxSpinEvent &event);
 };
 
 #endif

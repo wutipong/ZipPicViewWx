@@ -150,7 +150,7 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
   for (auto path : fileEntries) {
 
     auto image = LoadImage(path);
-    imageMap[path] = image;
+
     auto button = new wxButton(splitter->GetWindow2(), wxID_ANY);
     button->Bind(wxEVT_BUTTON, &MainFrame::OnImageButtonClick, this);
 
@@ -203,7 +203,7 @@ void MainFrame::OnImageButtonClick(wxCommandEvent &event) {
 
   auto page = notebook->GetPageCount();
 
-  auto bitmapCtl = new ImageViewPanel(notebook, imageMap[path]);
+  auto bitmapCtl = new ImageViewPanel(notebook, LoadImage(path));
   notebook->AddPage(bitmapCtl, path.AfterLast('/'));
   notebook->SetSelection(page);
 }
