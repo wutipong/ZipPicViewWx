@@ -30,15 +30,18 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
       wxTR_NO_LINES | wxTR_FULL_ROW_HIGHLIGHT | wxTR_ROW_LINES | wxTR_SINGLE);
   dirTree->Bind(wxEVT_TREE_SEL_CHANGED, &MainFrame::OnTreeSelectionChanged,
                 this, ID_DIRECTORY_TREE);
+  dirTree->SetMinSize({250, 250});
   auto rightWindow = new wxScrolledWindow(splitter, wxID_ANY);
   auto grid = new wxGridSizer(5);
   rightWindow->SetSizer(grid);
   rightWindow->SetScrollRate(10, 10);
+  rightWindow->SetMinSize({250, 250});
   rightWindow->Bind(wxEVT_SIZE, &MainFrame::OnGridPanelSize, this);
   splitter->SplitVertically(dirTree, rightWindow, 250);
 
   notebook->AddPage(splitter, "Browse");
 
+  SetMinSize({640, 480});
   SetSizer(outerSizer);
 }
 
