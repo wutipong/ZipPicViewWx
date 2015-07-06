@@ -21,13 +21,12 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   if (filePicker->HasTextCtrl())
     filePicker->GetTextCtrl()->Disable();
 
-  outerSizer->Add(filePicker, 0, wxEXPAND | wxALL, 10);
-  outerSizer->Add(notebook, 1, wxEXPAND | wxALL, 10);
+  outerSizer->Add(filePicker, 0, wxEXPAND | wxALL);
+  outerSizer->Add(notebook, 1, wxEXPAND | wxALL);
 
   splitter = new wxSplitterWindow(notebook, wxID_ANY);
-  dirTree = new wxTreeCtrl(
-      splitter, ID_DIRECTORY_TREE, wxDefaultPosition, wxDefaultSize,
-      wxTR_NO_LINES | wxTR_FULL_ROW_HIGHLIGHT | wxTR_ROW_LINES | wxTR_SINGLE);
+  dirTree = new wxTreeCtrl(splitter, ID_DIRECTORY_TREE, wxDefaultPosition,
+                           wxDefaultSize, wxTR_SINGLE);
   dirTree->Bind(wxEVT_TREE_SEL_CHANGED, &MainFrame::OnTreeSelectionChanged,
                 this, ID_DIRECTORY_TREE);
   auto rightWindow = new wxScrolledWindow(splitter, wxID_ANY);
