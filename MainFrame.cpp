@@ -14,22 +14,30 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   auto outerSizer = new wxBoxSizer(wxVERTICAL);
 
   notebook = new wxNotebook(this, wxID_ANY);
-  filePicker = new wxFilePickerCtrl(this, wxID_OPEN, wxEmptyString,
-                                    wxFileSelectorPromptStr, "*.zip");
+  filePicker = new wxFilePickerCtrl(
+      this, wxID_OPEN, wxEmptyString, wxFileSelectorPromptStr, "*.zip",
+      wxDefaultPosition, wxDefaultSize,
+      wxFLP_USE_TEXTCTRL | wxFLP_OPEN | wxFLP_FILE_MUST_EXIST);
   filePicker->Bind(wxEVT_FILEPICKER_CHANGED, &MainFrame::OnFileSelected, this,
                    wxID_OPEN);
-  if (filePicker->HasTextCtrl())
-    filePicker->GetTextCtrl()->Disable();
 
-  outerSizer->Add(filePicker, 0, wxEXPAND | wxALL);
-  outerSizer->Add(notebook, 1, wxEXPAND | wxALL);
+  if (filePicker->HasTextCtrl()) {
+    filePicker->GetTextCtrl()->Disable();
+  }
+
+  outerSizer->Add(filePicker, 0, wxEXPAND | wxALL, 5);
+  outerSizer->Add(notebook, 1, wxEXPAND | wxALL, 5);
 
   splitter = new wxSplitterWindow(notebook, wxID_ANY);
   dirTree = new wxTreeCtrl(splitter, ID_DIRECTORY_TREE, wxDefaultPosition,
-                           wxDefaultSize, wxTR_SINGLE);
+                           wxDefaultSize, wxTR_SINGLE | wxTR_NO_LINES |
+                                              wxTR_FULL_ROW_HIGHLIGHT);
   dirTree->Bind(wxEVT_TREE_SEL_CHANGED, &MainFrame::OnTreeSelectionChanged,
                 this, ID_DIRECTORY_TREE);
+  dirTree->Bind(wxEVT_TREE_ITEM_COLLAPSING,
+                [=](wxTreeEvent &event) { event.Veto(); }, ID_DIRECTORY_TREE);
   dirTree->SetMinSize({250, 250});
+
   auto rightWindow = new wxScrolledWindow(splitter, wxID_ANY);
   auto grid = new wxGridSizer(5);
   rightWindow->SetSizer(grid);
@@ -74,10 +82,10 @@ void MainFrame::OnFileSelected(wxFileDirPickerEvent &event) {
   }
 
   BuildDirectoryTree();
-  dirTree->ExpandAll();
   progressDlg->Update(100);
   dirTree->UnselectAll();
   dirTree->SelectItem(dirTree->GetRootItem());
+  dirTree->ExpandAll();
 }
 
 void MainFrame::BuildDirectoryTree() {
@@ -149,6 +157,7 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
   auto fileEntries = GetFileEntries(path);
   progressDlg->Pulse();
   auto gridPanel = dynamic_cast<wxScrolledWindow *>(splitter->GetWindow2());
+  gridPanel->Show(false);
   auto grid = gridPanel->GetSizer();
   grid->Clear(true);
 
@@ -178,6 +187,7 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
   }
 
   grid->FitInside(gridPanel);
+  gridPanel->Show(true);
   gridPanel->Scroll(0, 0);
   progressDlg->Update(100);
 }
