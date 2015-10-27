@@ -22,11 +22,13 @@ private:
   wxNotebook *notebook;
   wxTreeCtrl *dirTree;
   wxSplitterWindow *splitter;
+  wxCheckBox *onTopChk;
 
   void OnFileSelected(wxFileDirPickerEvent &event);
   void OnTreeSelectionChanged(wxTreeEvent &event);
   void OnImageButtonClick(wxCommandEvent &event);
   void OnGridPanelSize(wxSizeEvent &event);
+  void OnOnTopChecked(wxCommandEvent& event);
 
   void BuildDirectoryTree();
   void AddTreeItemsFromPath(const wxTreeItemId &parent, const wxString &path);

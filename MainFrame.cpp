@@ -12,7 +12,9 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   SetStatusText("Welcome to ZipPicView!");
 
   auto outerSizer = new wxBoxSizer(wxVERTICAL);
-
+  auto toolSizer = new wxBoxSizer(wxHORIZONTAL);
+  onTopChk = new wxCheckBox(this, wxID_ANY, "On Top");
+  onTopChk->Bind(wxEVT_CHECKBOX, &MainFrame::OnOnTopChecked, this);
   notebook = new wxNotebook(this, wxID_ANY);
   filePicker = new wxFilePickerCtrl(
       this, wxID_OPEN, wxEmptyString, wxFileSelectorPromptStr, "*.zip",
@@ -25,7 +27,11 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
     filePicker->GetTextCtrl()->Disable();
   }
 
-  outerSizer->Add(filePicker, 0, wxEXPAND | wxALL, 5);
+  toolSizer->Add(filePicker, 1, wxEXPAND | wxALL);
+  toolSizer->Add(onTopChk, 0, wxEXPAND | wxALL);
+
+  outerSizer->Add(toolSizer, 0, wxEXPAND | wxALL, 5);
+
   outerSizer->Add(notebook, 1, wxEXPAND | wxALL, 5);
 
   splitter = new wxSplitterWindow(notebook, wxID_ANY);
@@ -230,4 +236,15 @@ void MainFrame::OnGridPanelSize(wxSizeEvent &event) {
   grid->SetCols(col > 0 ? col : 1);
 
   grid->FitInside(splitter->GetWindow2());
+}
+
+void MainFrame::OnOnTopChecked(wxCommandEvent &event) {
+  auto style = GetWindowStyle();
+
+  if(onTopChk->IsChecked()){
+    style += wxSTAY_ON_TOP;
+  } else {
+    style -= wxSTAY_ON_TOP;
+  }
+  SetWindowStyle(style);
 }
