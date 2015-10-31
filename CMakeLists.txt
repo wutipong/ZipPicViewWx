@@ -15,7 +15,7 @@ if(WINDOWS)
   # set (CMAKE_EXE_LINKER_FLAGS "-static")
 endif(WINDOWS)
 
-add_executable(${SRC})
+add_executable(${SRC} Entry.h ZipEntry.cpp ZipEntry.h)
 
 set(wxWidgets_CONFIGURATION mswu)
 find_package(wxWidgets COMPONENTS core base REQUIRED)

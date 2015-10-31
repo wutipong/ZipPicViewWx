@@ -11,11 +11,11 @@
 #include <zip.h>
 #include <vector>
 #include <map>
+#include "Entry.h"
 
 class MainFrame : public wxFrame {
 public:
   MainFrame();
-  ~MainFrame();
 
 private:
   wxFilePickerCtrl *filePicker;
@@ -31,14 +31,9 @@ private:
   void OnOnTopChecked(wxCommandEvent& event);
 
   void BuildDirectoryTree();
-  void AddTreeItemsFromPath(const wxTreeItemId &parent, const wxString &path);
+  void AddTreeItemsFromEntry(const wxTreeItemId &itemId, Entry *entry);
 
-  std::vector<wxString> GetFileEntries(const wxString &parent);
-
-  wxImage LoadImage(wxString innerFile);
-
-  zip_t *zipFile = nullptr;
-  std::vector<wxString> paths;
+  Entry* entry;
 };
 
 #endif
