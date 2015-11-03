@@ -19,7 +19,9 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   onTopChk->Bind(wxEVT_CHECKBOX, &MainFrame::OnOnTopChecked, this);
   notebook = new wxNotebook(this, wxID_ANY);
 
-  currentFileCtrl = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
+  currentFileCtrl =
+      new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
+                     wxDefaultSize, wxTE_READONLY);
   dirBrowseBtn = new wxButton(this, wxID_ANY, "Directory...");
   dirBrowseBtn->Bind(wxEVT_BUTTON, &MainFrame::OnDirBrowsePressed, this);
   zipBrowseBtn = new wxButton(this, wxID_ANY, "Zip...");
@@ -36,7 +38,7 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   splitter = new wxSplitterWindow(notebook, wxID_ANY);
   dirTree = new wxTreeCtrl(splitter, ID_DIRECTORY_TREE, wxDefaultPosition,
                            wxDefaultSize, wxTR_SINGLE | wxTR_NO_LINES |
-          wxTR_FULL_ROW_HIGHLIGHT);
+                                              wxTR_FULL_ROW_HIGHLIGHT);
   dirTree->Bind(wxEVT_TREE_SEL_CHANGED, &MainFrame::OnTreeSelectionChanged,
                 this, ID_DIRECTORY_TREE);
   dirTree->Bind(wxEVT_TREE_ITEM_COLLAPSING,
@@ -78,14 +80,14 @@ void MainFrame::AddTreeItemsFromEntry(const wxTreeItemId &itemId,
 }
 
 void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
-  auto progressDlg = new wxProgressDialog("Loading", "Please Wait");
+  wxProgressDialog progressDlg("Loading", "Please Wait");
 
   auto treeItemId = event.GetItem();
   auto rootId = dirTree->GetRootItem();
   auto currentFileEntry =
       dynamic_cast<EntryItemData *>(dirTree->GetItemData(treeItemId))->Get();
 
-  progressDlg->Pulse();
+  progressDlg.Pulse();
   auto gridPanel = dynamic_cast<wxScrolledWindow *>(splitter->GetWindow2());
   gridPanel->Show(false);
   auto grid = gridPanel->GetSizer();
@@ -97,7 +99,7 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
 
     auto name = childEntry->Name();
     if (!(name.EndsWith(".jpg") || name.EndsWith(".jpeg") ||
-        name.EndsWith(".png") || name.EndsWith(".gif")))
+          name.EndsWith(".png") || name.EndsWith(".gif")))
       return;
 
     auto image = childEntry->LoadImage();
@@ -119,13 +121,13 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
     btnSizer->Add(new wxStaticText(gridPanel, wxID_ANY, childEntry->Name()));
 
     grid->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
-    progressDlg->Pulse();
+    progressDlg.Pulse();
   }
 
   grid->FitInside(gridPanel);
   gridPanel->Show(true);
   gridPanel->Scroll(0, 0);
-  progressDlg->Update(100);
+  progressDlg.Update(100);
 }
 
 void MainFrame::OnImageButtonClick(wxCommandEvent &event) {
@@ -168,7 +170,6 @@ void MainFrame::OnDirBrowsePressed(wxCommandEvent &event) {
     return;
 
   auto path = dlg.GetPath();
-  auto progressDlg = new wxProgressDialog("Loading", "Please Wait");
 
   if (entry) {
     delete entry;
@@ -184,32 +185,28 @@ void MainFrame::OnDirBrowsePressed(wxCommandEvent &event) {
   dirTree->SelectItem(dirTree->GetRootItem());
   dirTree->ExpandAll();
 
-  progressDlg->Update(100);
   currentFileCtrl->SetLabelText(filename.GetFullPath());
 }
 
 void MainFrame::OnZipBrowsePressed(wxCommandEvent &event) {
-  wxFileDialog
-      dialog(this, _("Open ZIP file"), "", "",
-             "ZIP files (*.zip)|*.zip", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+  wxFileDialog dialog(this, _("Open ZIP file"), "", "",
+                      "ZIP files (*.zip)|*.zip",
+                      wxFD_OPEN | wxFD_FILE_MUST_EXIST);
   if (dialog.ShowModal() == wxID_CANCEL)
     return;
 
-  auto path = dialog.GetPath();
-  auto progressDlg = new wxProgressDialog("Loading", "Please Wait");
-  progressDlg->Update(0);
   if (entry) {
     delete entry;
     entry = nullptr;
   }
 
+  auto path = dialog.GetPath();
   wxFileName filename(path);
 
   int error;
   auto zipFile = zip_open(path, ZIP_RDONLY, &error);
 
   if (zipFile == nullptr) {
-    progressDlg->Update(100);
     throw error;
   }
 
@@ -221,7 +218,6 @@ void MainFrame::OnZipBrowsePressed(wxCommandEvent &event) {
   dirTree->SelectItem(dirTree->GetRootItem());
   dirTree->ExpandAll();
 
-  progressDlg->Update(100);
-  progressDlg->Close(true);
-  currentFileCtrl->SetLabelText(filename.GetFullPath());
+  std::cout << "Done" << std::endl;
+  currentFileCtrl->SetValue(filename.GetFullPath());
 }
