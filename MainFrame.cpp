@@ -18,28 +18,25 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   onTopChk = new wxCheckBox(this, wxID_ANY, "On Top");
   onTopChk->Bind(wxEVT_CHECKBOX, &MainFrame::OnOnTopChecked, this);
   notebook = new wxNotebook(this, wxID_ANY);
-  filePicker = new wxFilePickerCtrl(
-      this, wxID_OPEN, wxEmptyString, wxFileSelectorPromptStr, "*.zip",
-      wxDefaultPosition, wxDefaultSize,
-      wxFLP_USE_TEXTCTRL | wxFLP_OPEN | wxFLP_FILE_MUST_EXIST);
-  filePicker->Bind(wxEVT_FILEPICKER_CHANGED, &MainFrame::OnFileSelected, this,
-                   wxID_OPEN);
 
-  if (filePicker->HasTextCtrl()) {
-    filePicker->GetTextCtrl()->Disable();
-  }
+  currentFileCtrl = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
+  dirBrowseBtn = new wxButton(this, wxID_ANY, "Directory...");
+  dirBrowseBtn->Bind(wxEVT_BUTTON, &MainFrame::OnDirBrowsePressed, this);
+  zipBrowseBtn = new wxButton(this, wxID_ANY, "Zip...");
+  zipBrowseBtn->Bind(wxEVT_BUTTON, &MainFrame::OnZipBrowsePressed, this);
 
-  toolSizer->Add(filePicker, 1, wxEXPAND | wxALL);
+  toolSizer->Add(currentFileCtrl, 1, wxEXPAND | wxALL);
+  toolSizer->Add(dirBrowseBtn, 0, wxEXPAND | wxALL);
+  toolSizer->Add(zipBrowseBtn, 0, wxEXPAND | wxALL);
   toolSizer->Add(onTopChk, 0, wxEXPAND | wxALL);
 
   outerSizer->Add(toolSizer, 0, wxEXPAND | wxALL, 5);
-
   outerSizer->Add(notebook, 1, wxEXPAND | wxALL, 5);
 
   splitter = new wxSplitterWindow(notebook, wxID_ANY);
   dirTree = new wxTreeCtrl(splitter, ID_DIRECTORY_TREE, wxDefaultPosition,
                            wxDefaultSize, wxTR_SINGLE | wxTR_NO_LINES |
-                                              wxTR_FULL_ROW_HIGHLIGHT);
+          wxTR_FULL_ROW_HIGHLIGHT);
   dirTree->Bind(wxEVT_TREE_SEL_CHANGED, &MainFrame::OnTreeSelectionChanged,
                 this, ID_DIRECTORY_TREE);
   dirTree->Bind(wxEVT_TREE_ITEM_COLLAPSING,
@@ -58,43 +55,6 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
 
   SetMinSize({640, 480});
   SetSizer(outerSizer);
-}
-
-void MainFrame::OnFileSelected(wxFileDirPickerEvent &event) {
-  auto progressDlg = new wxProgressDialog("Loading", "Please Wait");
-  auto path = event.GetPath();
-  wxFileName filename(path);
-  wxFileName dirname(filename.GetPathWithSep());
-
-  if (entry) {
-    delete entry;
-    entry = nullptr;
-  }
-
-  entry = FileEntry::Create(dirname);
-
-  /*
-  int error;
-  auto zipFile = zip_open(path, ZIP_RDONLY, &error);
-
-  if (zipFile == nullptr) {
-    progressDlg->Update(100);
-    throw error;
-  }
-  if (entry) {
-    delete entry;
-    entry = nullptr;
-  }
-
-  entry = ZipEntry::Create(zipFile);
-  */
-  BuildDirectoryTree();
-
-  dirTree->UnselectAll();
-  dirTree->SelectItem(dirTree->GetRootItem());
-  dirTree->ExpandAll();
-
-  progressDlg->Update(100);
 }
 
 void MainFrame::BuildDirectoryTree() {
@@ -137,7 +97,7 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
 
     auto name = childEntry->Name();
     if (!(name.EndsWith(".jpg") || name.EndsWith(".jpeg") ||
-          name.EndsWith(".png") || name.EndsWith(".gif")))
+        name.EndsWith(".png") || name.EndsWith(".gif")))
       return;
 
     auto image = childEntry->LoadImage();
@@ -199,4 +159,69 @@ void MainFrame::OnOnTopChecked(wxCommandEvent &event) {
     style -= wxSTAY_ON_TOP;
   }
   SetWindowStyle(style);
+}
+
+void MainFrame::OnDirBrowsePressed(wxCommandEvent &event) {
+  wxDirDialog dlg(NULL, "Choose directory", "",
+                  wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
+  if (dlg.ShowModal() == wxID_CANCEL)
+    return;
+
+  auto path = dlg.GetPath();
+  auto progressDlg = new wxProgressDialog("Loading", "Please Wait");
+
+  if (entry) {
+    delete entry;
+    entry = nullptr;
+  }
+
+  wxFileName filename(path);
+  entry = FileEntry::Create(filename);
+
+  BuildDirectoryTree();
+
+  dirTree->UnselectAll();
+  dirTree->SelectItem(dirTree->GetRootItem());
+  dirTree->ExpandAll();
+
+  progressDlg->Update(100);
+  currentFileCtrl->SetLabelText(filename.GetFullPath());
+}
+
+void MainFrame::OnZipBrowsePressed(wxCommandEvent &event) {
+  wxFileDialog
+      dialog(this, _("Open ZIP file"), "", "",
+             "ZIP files (*.zip)|*.zip", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+  if (dialog.ShowModal() == wxID_CANCEL)
+    return;
+
+  auto path = dialog.GetPath();
+  auto progressDlg = new wxProgressDialog("Loading", "Please Wait");
+  progressDlg->Update(0);
+  if (entry) {
+    delete entry;
+    entry = nullptr;
+  }
+
+  wxFileName filename(path);
+
+  int error;
+  auto zipFile = zip_open(path, ZIP_RDONLY, &error);
+
+  if (zipFile == nullptr) {
+    progressDlg->Update(100);
+    throw error;
+  }
+
+  entry = ZipEntry::Create(zipFile);
+
+  BuildDirectoryTree();
+
+  dirTree->UnselectAll();
+  dirTree->SelectItem(dirTree->GetRootItem());
+  dirTree->ExpandAll();
+
+  progressDlg->Update(100);
+  progressDlg->Close(true);
+  currentFileCtrl->SetLabelText(filename.GetFullPath());
 }

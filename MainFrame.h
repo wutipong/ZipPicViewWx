@@ -18,18 +18,21 @@ public:
   MainFrame();
 
 private:
-  wxFilePickerCtrl *filePicker;
-  wxDirPickerCtrl *dirPicker;
   wxNotebook *notebook;
   wxTreeCtrl *dirTree;
   wxSplitterWindow *splitter;
   wxCheckBox *onTopChk;
 
-  void OnFileSelected(wxFileDirPickerEvent &event);
+  wxTextCtrl *currentFileCtrl;
+  wxButton *dirBrowseBtn;
+  wxButton *zipBrowseBtn;
+
   void OnTreeSelectionChanged(wxTreeEvent &event);
   void OnImageButtonClick(wxCommandEvent &event);
   void OnGridPanelSize(wxSizeEvent &event);
   void OnOnTopChecked(wxCommandEvent &event);
+  void OnDirBrowsePressed(wxCommandEvent& event);
+  void OnZipBrowsePressed(wxCommandEvent& event);
 
   void BuildDirectoryTree();
   void AddTreeItemsFromEntry(const wxTreeItemId &itemId, Entry *entry);
