@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 project(ZipPicView CXX)
 set(CMAKE_CXX_STANDARD 11)
 
-set(SRC ZipPicView MainFrame.cpp ZipPicViewApp.cpp ImageViewPanel.cpp)
+set(SRC ZipPicView MainFrame.cpp ZipPicViewApp.cpp ImageViewPanel.cpp Entry.h ZipEntry.cpp ZipEntry.h FileEntry.cpp FileEntry.h)
 
 if (WINDOWS OR MSYS)
     enable_language(RC)
@@ -11,7 +11,7 @@ if (WINDOWS OR MSYS)
     set(SRC ${SRC} resource.rc)
 endif (WINDOWS OR MSYS)
 
-add_executable(${SRC} Entry.h ZipEntry.cpp ZipEntry.h)
+add_executable(${SRC} )
 
 set(wxWidgets_CONFIGURATION mswu)
 find_package(wxWidgets COMPONENTS core base REQUIRED)

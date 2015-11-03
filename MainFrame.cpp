@@ -5,6 +5,7 @@
 #include <wx/button.h>
 #include "ImageViewPanel.h"
 #include "ZipEntry.h"
+#include "FileEntry.h"
 
 enum MainFrameIds { ID_DIRECTORY_TREE = 1, ID_IMAGE_BUTTON };
 
@@ -38,7 +39,7 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   splitter = new wxSplitterWindow(notebook, wxID_ANY);
   dirTree = new wxTreeCtrl(splitter, ID_DIRECTORY_TREE, wxDefaultPosition,
                            wxDefaultSize, wxTR_SINGLE | wxTR_NO_LINES |
-          wxTR_FULL_ROW_HIGHLIGHT);
+                                              wxTR_FULL_ROW_HIGHLIGHT);
   dirTree->Bind(wxEVT_TREE_SEL_CHANGED, &MainFrame::OnTreeSelectionChanged,
                 this, ID_DIRECTORY_TREE);
   dirTree->Bind(wxEVT_TREE_ITEM_COLLAPSING,
@@ -62,7 +63,17 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
 void MainFrame::OnFileSelected(wxFileDirPickerEvent &event) {
   auto progressDlg = new wxProgressDialog("Loading", "Please Wait");
   auto path = event.GetPath();
+  wxFileName filename(path);
+  wxFileName dirname(filename.GetPathWithSep());
 
+  if (entry) {
+    delete entry;
+    entry = nullptr;
+  }
+
+  entry = FileEntry::Create(dirname);
+
+  /*
   int error;
   auto zipFile = zip_open(path, ZIP_RDONLY, &error);
 
@@ -76,7 +87,7 @@ void MainFrame::OnFileSelected(wxFileDirPickerEvent &event) {
   }
 
   entry = ZipEntry::Create(zipFile);
-
+  */
   BuildDirectoryTree();
 
   dirTree->UnselectAll();
@@ -93,12 +104,14 @@ void MainFrame::BuildDirectoryTree() {
   AddTreeItemsFromEntry(root, entry);
 }
 
-void MainFrame::AddTreeItemsFromEntry(const wxTreeItemId &itemId, Entry *entry) {
-  for (auto childEntry: *entry) {
+void MainFrame::AddTreeItemsFromEntry(const wxTreeItemId &itemId,
+                                      Entry *entry) {
+  for (auto childEntry : *entry) {
     if (!childEntry->IsDirectory())
       return;
 
-    auto child = dirTree->AppendItem(itemId, childEntry->Name(), -1, -1, new EntryItemData(childEntry));
+    auto child = dirTree->AppendItem(itemId, childEntry->Name(), -1, -1,
+                                     new EntryItemData(childEntry));
 
     AddTreeItemsFromEntry(child, childEntry);
   }
@@ -109,7 +122,8 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
 
   auto treeItemId = event.GetItem();
   auto rootId = dirTree->GetRootItem();
-  auto currentFileEntry = dynamic_cast<EntryItemData *>(dirTree->GetItemData(treeItemId))->Get();
+  auto currentFileEntry =
+      dynamic_cast<EntryItemData *>(dirTree->GetItemData(treeItemId))->Get();
 
   progressDlg->Pulse();
   auto gridPanel = dynamic_cast<wxScrolledWindow *>(splitter->GetWindow2());
@@ -117,12 +131,13 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
   auto grid = gridPanel->GetSizer();
   grid->Clear(true);
 
-  for (auto childEntry: *entry) {
+  for (auto childEntry : *entry) {
     if (childEntry->IsDirectory())
       return;
 
     auto name = childEntry->Name();
-    if (!(name.EndsWith(".jpg") || name.EndsWith(".jpeg") || name.EndsWith(".png") || name.EndsWith(".gif")))
+    if (!(name.EndsWith(".jpg") || name.EndsWith(".jpeg") ||
+          name.EndsWith(".png") || name.EndsWith(".gif")))
       return;
 
     auto image = childEntry->LoadImage();
@@ -153,14 +168,14 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
   progressDlg->Update(100);
 }
 
-
 void MainFrame::OnImageButtonClick(wxCommandEvent &event) {
   auto button = dynamic_cast<wxButton *>(event.GetEventObject());
   auto clientData =
       dynamic_cast<wxStringClientData *>(button->GetClientObject());
 
   auto page = notebook->GetPageCount();
-  auto childEntry = dynamic_cast<EntryItemData *>(button->GetClientObject())->Get();
+  auto childEntry =
+      dynamic_cast<EntryItemData *>(button->GetClientObject())->Get();
   auto bitmapCtl = new ImageViewPanel(notebook, childEntry->LoadImage());
   notebook->AddPage(bitmapCtl, childEntry->Name());
   notebook->SetSelection(page);

@@ -19,6 +19,7 @@ public:
 
 private:
   wxFilePickerCtrl *filePicker;
+  wxDirPickerCtrl *dirPicker;
   wxNotebook *notebook;
   wxTreeCtrl *dirTree;
   wxSplitterWindow *splitter;
@@ -28,12 +29,12 @@ private:
   void OnTreeSelectionChanged(wxTreeEvent &event);
   void OnImageButtonClick(wxCommandEvent &event);
   void OnGridPanelSize(wxSizeEvent &event);
-  void OnOnTopChecked(wxCommandEvent& event);
+  void OnOnTopChecked(wxCommandEvent &event);
 
   void BuildDirectoryTree();
   void AddTreeItemsFromEntry(const wxTreeItemId &itemId, Entry *entry);
 
-  Entry* entry;
+  Entry *entry;
 };
 
 #endif
