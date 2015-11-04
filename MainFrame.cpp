@@ -167,9 +167,8 @@ void MainFrame::OnDirBrowsePressed(wxCommandEvent &event) {
   if (dlg.ShowModal() == wxID_CANCEL)
     return;
   auto oldEntry = entry;
-  auto path = dlg.GetPath() + wxFileName::GetPathSeparator();
 
-  wxFileName filename(path);
+  wxFileName filename = wxFileName::DirName(dlg.GetPath());
   auto entry = FileEntry::Create(filename);
   SetEntry(entry);
   currentFileCtrl->SetLabelText(filename.GetFullPath());

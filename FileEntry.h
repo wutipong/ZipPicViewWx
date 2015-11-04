@@ -4,6 +4,7 @@
 #include <wx/filename.h>
 #include <wx/dir.h>
 #include <map>
+#include <functional>
 #include "Entry.h"
 
 class FileEntry : public Entry {
@@ -19,9 +20,11 @@ private:
   FileEntry(const wxFileName &filename);
   wxFileName filename;
 
-  static FileEntry *
-  AddChildrenFromPath(std::map<wxString, FileEntry *> &entryMap,
-                      const wxString &path);
+  static FileEntry *AddChildrenFromPath(
+      std::map<wxFileName, FileEntry *,
+               std::function<bool(const wxFileName &, const wxFileName &)>>
+          &entryMap,
+      const wxFileName &filename);
 };
 
 #endif

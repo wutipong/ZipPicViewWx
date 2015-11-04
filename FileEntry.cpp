@@ -5,10 +5,19 @@ FileEntry *FileEntry::Create(const wxFileName &filename) {
   wxArrayString paths;
   auto root = new FileEntry(filename);
   wxDir::GetAllFiles(filename.GetPath(), &paths);
-  std::map<wxString, FileEntry *> entryMap;
-  entryMap[filename.GetPathWithSep()] = root;
+  auto cmp = [](const wxFileName &f1, const wxFileName &f2) {
+    return f1.GetFullPath() < f2.GetFullPath();
+  };
+  std::map<wxFileName, FileEntry *,
+           std::function<bool(const wxFileName &, const wxFileName &)>>
+      entryMap(cmp);
+  entryMap[filename] = root;
+
   for (int i = 0; i < paths.Count(); i++) {
-    std::cout << "Processing " << paths.Item(i) << std::endl;
+    std::cout << i << ": " << paths[i] << std::endl;
+  }
+
+  for (int i = 0; i < paths.Count(); i++) {
     AddChildrenFromPath(entryMap, paths.Item(i));
   }
 
@@ -28,8 +37,7 @@ wxImage FileEntry::LoadImage() {
 FileEntry::FileEntry(const wxFileName &filename) : filename(filename) {
   if (filename.IsDir()) {
     SetIsDirectory(true);
-    auto dirCount = filename.GetDirCount();
-    auto name = filename.GetDirs().Item(dirCount - 1);
+    auto name = filename.GetFullName();
     SetName(name);
   } else {
     SetName(filename.GetFullName());
@@ -37,25 +45,29 @@ FileEntry::FileEntry(const wxFileName &filename) : filename(filename) {
   }
 }
 
-FileEntry *
-FileEntry::AddChildrenFromPath(std::map<wxString, FileEntry *> &entryMap,
-                               const wxString &path) {
-  auto iter = entryMap.find(path);
-  if (iter != entryMap.end())
+FileEntry *FileEntry::AddChildrenFromPath(
+    std::map<wxFileName, FileEntry *,
+             std::function<bool(const wxFileName &, const wxFileName &)>>
+        &entryMap,
+    const wxFileName &filename) {
+  auto iter = entryMap.find(filename);
+  if (iter != entryMap.end()) {
     return iter->second;
-  std::cout << "Add Path : " << path << std::endl;
-  wxFileName filename(path);
-
-  wxString parentPath = filename.GetPathWithSep();
-  if (filename.IsDir()) {
-    parentPath = parentPath.BeforeLast(wxFileName::GetPathSeparator())
-                     .BeforeLast(wxFileName::GetPathSeparator()) +
-                 wxFileName::GetPathSeparator();
   }
-  std::cout << "Parent : " << parentPath << std::endl;
-  auto parent = AddChildrenFromPath(entryMap, parentPath);
+
+  wxFileName parentFileName = filename;
+
+  if (parentFileName.IsDir()) {
+    parentFileName.RemoveLastDir();
+  } else {
+    parentFileName.SetFullName("");
+  }
+  std::cout << "filename : " << filename.GetFullPath() << std::endl;
+  std::cout << "parent : " << parentFileName.GetFullPath() << std::endl;
+
+  auto parent = AddChildrenFromPath(entryMap, parentFileName);
   auto child = new FileEntry(filename);
 
   parent->AddChild(child);
-  entryMap[path] = child;
+  entryMap[filename] = child;
 }
