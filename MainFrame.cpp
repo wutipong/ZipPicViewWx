@@ -184,9 +184,11 @@ void MainFrame::OnZipBrowsePressed(wxCommandEvent &event) {
 
   auto path = dialog.GetPath();
   wxFileName filename(path);
+  wxFile file(path);
 
   int error;
-  auto zipFile = zip_open(path, ZIP_RDONLY, &error);
+  auto zipFile = zip_fdopen(file.fd(), ZIP_RDONLY, &error);
+  // auto zipFile = zip_open(path.ToUTF8(), ZIP_RDONLY, &error);
 
   if (zipFile == nullptr) {
     throw error;
