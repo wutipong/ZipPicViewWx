@@ -32,11 +32,12 @@ public:
     for (auto entry : children) {
       delete entry;
     }
+    children.clear();
   }
 
   void PrintChildren(int level = 0) {
     for (int i = 0; i < level; i++)
-      std::cout << "--";
+      std::cout << "|-";
     std::cout << Name() << std::endl;
     for (auto child : children) {
       child->PrintChildren(level + 1);
@@ -60,7 +61,6 @@ private:
 
 public:
   EntryItemData(Entry *e) : wxTreeItemData(), entry(e){};
-  virtual ~EntryItemData() { delete entry; }
 
   Entry *Get() { return entry; }
 };

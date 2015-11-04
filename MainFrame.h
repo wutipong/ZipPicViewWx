@@ -31,12 +31,13 @@ private:
   void OnImageButtonClick(wxCommandEvent &event);
   void OnGridPanelSize(wxSizeEvent &event);
   void OnOnTopChecked(wxCommandEvent &event);
-  void OnDirBrowsePressed(wxCommandEvent& event);
-  void OnZipBrowsePressed(wxCommandEvent& event);
+  void OnDirBrowsePressed(wxCommandEvent &event);
+  void OnZipBrowsePressed(wxCommandEvent &event);
 
   void BuildDirectoryTree();
   void AddTreeItemsFromEntry(const wxTreeItemId &itemId, Entry *entry);
 
+  void SetEntry(Entry *entry);
   Entry *entry;
 };
 

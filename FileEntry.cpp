@@ -8,7 +8,7 @@ FileEntry *FileEntry::Create(const wxFileName &filename) {
   std::map<wxString, FileEntry *> entryMap;
   entryMap[filename.GetPathWithSep()] = root;
   for (int i = 0; i < paths.Count(); i++) {
-    std::cout << paths.Item(i) << std::endl;
+    std::cout << "Processing " << paths.Item(i) << std::endl;
     AddChildrenFromPath(entryMap, paths.Item(i));
   }
 
@@ -43,7 +43,7 @@ FileEntry::AddChildrenFromPath(std::map<wxString, FileEntry *> &entryMap,
   auto iter = entryMap.find(path);
   if (iter != entryMap.end())
     return iter->second;
-  std::cout << path << std::endl;
+  std::cout << "Add Path : " << path << std::endl;
   wxFileName filename(path);
 
   wxString parentPath = filename.GetPathWithSep();
@@ -52,7 +52,8 @@ FileEntry::AddChildrenFromPath(std::map<wxString, FileEntry *> &entryMap,
                      .BeforeLast(wxFileName::GetPathSeparator()) +
                  wxFileName::GetPathSeparator();
   }
-  auto parent = AddChildrenFromPath(entryMap, filename.GetPathWithSep());
+  std::cout << "Parent : " << parentPath << std::endl;
+  auto parent = AddChildrenFromPath(entryMap, parentPath);
   auto child = new FileEntry(filename);
 
   parent->AddChild(child);

@@ -60,8 +60,6 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
 }
 
 void MainFrame::BuildDirectoryTree() {
-  dirTree->DeleteAllItems();
-
   auto root = dirTree->AddRoot(entry->Name(), -1, -1, new EntryItemData(entry));
   AddTreeItemsFromEntry(root, entry);
 }
@@ -93,7 +91,7 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
   auto grid = gridPanel->GetSizer();
   grid->Clear(true);
 
-  for (auto childEntry : *entry) {
+  for (auto childEntry : *currentFileEntry) {
     if (childEntry->IsDirectory())
       return;
 
@@ -168,23 +166,12 @@ void MainFrame::OnDirBrowsePressed(wxCommandEvent &event) {
                   wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
   if (dlg.ShowModal() == wxID_CANCEL)
     return;
-
-  auto path = dlg.GetPath();
-
-  if (entry) {
-    delete entry;
-    entry = nullptr;
-  }
+  auto oldEntry = entry;
+  auto path = dlg.GetPath() + wxFileName::GetPathSeparator();
 
   wxFileName filename(path);
-  entry = FileEntry::Create(filename);
-
-  BuildDirectoryTree();
-
-  dirTree->UnselectAll();
-  dirTree->SelectItem(dirTree->GetRootItem());
-  dirTree->ExpandAll();
-
+  auto entry = FileEntry::Create(filename);
+  SetEntry(entry);
   currentFileCtrl->SetLabelText(filename.GetFullPath());
 }
 
@@ -194,11 +181,6 @@ void MainFrame::OnZipBrowsePressed(wxCommandEvent &event) {
                       wxFD_OPEN | wxFD_FILE_MUST_EXIST);
   if (dialog.ShowModal() == wxID_CANCEL)
     return;
-
-  if (entry) {
-    delete entry;
-    entry = nullptr;
-  }
 
   auto path = dialog.GetPath();
   wxFileName filename(path);
@@ -210,14 +192,24 @@ void MainFrame::OnZipBrowsePressed(wxCommandEvent &event) {
     throw error;
   }
 
-  entry = ZipEntry::Create(zipFile);
+  auto entry = ZipEntry::Create(zipFile);
+  SetEntry(entry);
+  currentFileCtrl->SetLabelText(filename.GetFullPath());
+}
+
+void MainFrame::SetEntry(Entry *entry) {
+  auto oldEntry = MainFrame::entry;
+  MainFrame::entry = entry;
+
+  dirTree->UnselectAll();
+  dirTree->DeleteAllItems();
 
   BuildDirectoryTree();
 
-  dirTree->UnselectAll();
   dirTree->SelectItem(dirTree->GetRootItem());
   dirTree->ExpandAll();
 
-  std::cout << "Done" << std::endl;
-  currentFileCtrl->SetValue(filename.GetFullPath());
+  if (oldEntry) {
+    delete oldEntry;
+  }
 }
