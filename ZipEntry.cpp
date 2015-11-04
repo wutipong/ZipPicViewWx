@@ -9,7 +9,8 @@
 
 #include "ZipEntry.h"
 
-ZipEntry::ZipEntry(zip_t *zipFile, const wxString &innerPath) : zipFile(zipFile), innerPath(innerPath) {
+ZipEntry::ZipEntry(wxFile *file, zip_t *zipFile, const wxString &innerPath)
+    : file(file), zipFile(zipFile), innerPath(innerPath) {
   if (innerPath == "") {
     SetIsDirectory(true);
     SetName("/");
@@ -23,7 +24,7 @@ ZipEntry::ZipEntry(zip_t *zipFile, const wxString &innerPath) : zipFile(zipFile)
   } else {
     SetIsDirectory(false);
   }
-  if(name.Contains("/"))
+  if (name.Contains("/"))
     name = name.AfterLast('/');
 
   SetName(name);
@@ -52,11 +53,20 @@ wxImage ZipEntry::LoadImage() {
 ZipEntry::~ZipEntry() {
   if (innerPath == "") {
     zip_close(zipFile);
+    delete file;
   }
 }
 
-ZipEntry *ZipEntry::Create(zip_t *zipFile) {
-  ZipEntry *root = new ZipEntry(zipFile, "");
+ZipEntry *ZipEntry::Create(const wxString &path) {
+  auto file = new wxFile(path);
+
+  int error;
+  auto zipFile = zip_fdopen(file->fd(), ZIP_RDONLY, &error);
+
+  if (zipFile == nullptr) {
+    throw error;
+  }
+  ZipEntry *root = new ZipEntry(file, zipFile, "");
 
   std::vector<wxString> innerPaths;
 
@@ -71,17 +81,19 @@ ZipEntry *ZipEntry::Create(zip_t *zipFile) {
 
   entryMap[""] = root;
   for (auto &path : innerPaths) {
-    AddChildrenFromPath(zipFile, entryMap, path);
+    AddChildrenFromPath(file, zipFile, entryMap, path);
   }
 
   return root;
 }
 
-ZipEntry *ZipEntry::AddChildrenFromPath(zip_t *zipFile,
-                                        std::map<wxString, ZipEntry *> &entryMap,
-                                        const wxString &innerPath) {
+ZipEntry *
+ZipEntry::AddChildrenFromPath(wxFile *file, zip_t *zipFile,
+                              std::map<wxString, ZipEntry *> &entryMap,
+                              const wxString &innerPath) {
   auto iter = entryMap.find(innerPath);
-  if (iter != entryMap.end()) return iter->second;
+  if (iter != entryMap.end())
+    return iter->second;
 
   auto path = innerPath;
   bool dir = false;
@@ -91,10 +103,11 @@ ZipEntry *ZipEntry::AddChildrenFromPath(zip_t *zipFile,
   }
 
   auto parentPath = path.BeforeLast('/');
-  if(parentPath != "") parentPath += "/";
+  if (parentPath != "")
+    parentPath += "/";
 
-  auto parent = AddChildrenFromPath(zipFile, entryMap, parentPath);
-  auto child = new ZipEntry(zipFile, innerPath);
+  auto parent = AddChildrenFromPath(file, zipFile, entryMap, parentPath);
+  auto child = new ZipEntry(file, zipFile, innerPath);
 
   parent->AddChild(child);
   entryMap[innerPath] = child;

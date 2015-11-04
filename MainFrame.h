@@ -8,7 +8,6 @@
 #include <wx/progdlg.h>
 #include <wx/splitter.h>
 
-#include <zip.h>
 #include <vector>
 #include <map>
 #include "Entry.h"
