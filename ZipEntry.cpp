@@ -3,14 +3,15 @@
 //
 
 #include <wx/mstream.h>
+#include <wx/file.h>
 #include <algorithm>
 #include <map>
 #include <iostream>
 
 #include "ZipEntry.h"
 
-ZipEntry::ZipEntry(wxFile *file, zip_t *zipFile, const wxString &innerPath)
-    : file(file), zipFile(zipFile), innerPath(innerPath) {
+ZipEntry::ZipEntry(zip_t *zipFile, const wxString &innerPath)
+    : zipFile(zipFile), innerPath(innerPath) {
   if (innerPath == "") {
     SetIsDirectory(true);
     SetName("/");
@@ -51,22 +52,21 @@ wxImage ZipEntry::LoadImage() {
 }
 
 ZipEntry::~ZipEntry() {
-  if (innerPath == "") {
+  if (IsRoot()) {
     zip_close(zipFile);
-    delete file;
   }
 }
 
 ZipEntry *ZipEntry::Create(const wxString &path) {
-  auto file = new wxFile(path);
+  wxFile file(path);
 
   int error;
-  auto zipFile = zip_fdopen(file->fd(), ZIP_RDONLY, &error);
-
+  auto zipFile = zip_fdopen(file.fd(), ZIP_RDONLY, &error);
+  file.Detach();
   if (zipFile == nullptr) {
     throw error;
   }
-  ZipEntry *root = new ZipEntry(file, zipFile, "");
+  ZipEntry *root = new ZipEntry(zipFile, "");
 
   std::vector<wxString> innerPaths;
 
@@ -81,14 +81,14 @@ ZipEntry *ZipEntry::Create(const wxString &path) {
 
   entryMap[""] = root;
   for (auto &path : innerPaths) {
-    AddChildrenFromPath(file, zipFile, entryMap, path);
+    AddChildrenFromPath(zipFile, entryMap, path);
   }
 
   return root;
 }
 
 ZipEntry *
-ZipEntry::AddChildrenFromPath(wxFile *file, zip_t *zipFile,
+ZipEntry::AddChildrenFromPath(zip_t *zipFile,
                               std::map<wxString, ZipEntry *> &entryMap,
                               const wxString &innerPath) {
   auto iter = entryMap.find(innerPath);
@@ -106,8 +106,8 @@ ZipEntry::AddChildrenFromPath(wxFile *file, zip_t *zipFile,
   if (parentPath != "")
     parentPath += "/";
 
-  auto parent = AddChildrenFromPath(file, zipFile, entryMap, parentPath);
-  auto child = new ZipEntry(file, zipFile, innerPath);
+  auto parent = AddChildrenFromPath(zipFile, entryMap, parentPath);
+  auto child = new ZipEntry(zipFile, innerPath);
 
   parent->AddChild(child);
   entryMap[innerPath] = child;
