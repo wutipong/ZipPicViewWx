@@ -111,4 +111,6 @@ ZipEntry::AddChildrenFromPath(zip_t *zipFile,
 
   parent->AddChild(child);
   entryMap[innerPath] = child;
+
+  return child;
 }

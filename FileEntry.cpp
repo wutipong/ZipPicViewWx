@@ -37,9 +37,11 @@ wxImage FileEntry::LoadImage() {
 FileEntry::FileEntry(const wxFileName &filename) : filename(filename) {
   if (filename.IsDir()) {
     SetIsDirectory(true);
-    auto name = filename.GetFullName();
+    auto count = filename.GetDirCount();
+    auto name = filename.GetDirs()[count - 1];
     SetName(name);
   } else {
+    std::cout << filename.GetFullName() << "." << std::endl;
     SetName(filename.GetFullName());
     SetIsDirectory(false);
   }
@@ -70,4 +72,6 @@ FileEntry *FileEntry::AddChildrenFromPath(
 
   parent->AddChild(child);
   entryMap[filename] = child;
+
+  return child;
 }
