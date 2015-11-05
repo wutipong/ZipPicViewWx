@@ -156,6 +156,8 @@ void MainFrame::OnGridPanelSize(wxSizeEvent &event) {
   grid->SetCols(col > 0 ? col : 1);
 
   grid->FitInside(splitter->GetWindow2());
+  splitter->Refresh();
+  splitter->Update();
 }
 
 void MainFrame::OnOnTopChecked(wxCommandEvent &event) {
