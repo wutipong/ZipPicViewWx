@@ -36,9 +36,9 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   outerSizer->Add(notebook, 1, wxEXPAND | wxALL, 5);
 
   splitter = new wxSplitterWindow(notebook, wxID_ANY);
-  dirTree = new wxTreeCtrl(splitter, ID_DIRECTORY_TREE, wxDefaultPosition,
-                           wxDefaultSize, wxTR_SINGLE | wxTR_NO_LINES |
-                                              wxTR_FULL_ROW_HIGHLIGHT);
+  dirTree =
+      new wxTreeCtrl(splitter, ID_DIRECTORY_TREE, wxDefaultPosition,
+                     wxDefaultSize, wxTR_SINGLE | wxTR_FULL_ROW_HIGHLIGHT);
   dirTree->Bind(wxEVT_TREE_SEL_CHANGED, &MainFrame::OnTreeSelectionChanged,
                 this, ID_DIRECTORY_TREE);
   dirTree->Bind(wxEVT_TREE_ITEM_COLLAPSING,
@@ -95,10 +95,10 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
     if (childEntry->IsDirectory())
       return;
 
-    auto name = childEntry->Name();
-    if (!(name.EndsWith(".jpg") || name.EndsWith(".jpeg") ||
-          name.EndsWith(".png") || name.EndsWith(".gif")))
-      return;
+    auto ext = childEntry->Name().AfterLast('.').Lower();
+
+    if (ext != "jpg" && ext != "jpeg" && ext != "png" && ext != "gif")
+      continue;
 
     auto image = childEntry->LoadImage();
     auto button = new wxButton(gridPanel, wxID_ANY);
@@ -114,9 +114,12 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
     button->SetClientObject(new EntryItemData(childEntry));
     button->SetMinSize({250, 250});
 
+    auto staticText = new wxStaticText(gridPanel, wxID_ANY, childEntry->Name());
+    staticText->SetMaxSize({250, 50});
+
     auto btnSizer = new wxBoxSizer(wxVERTICAL);
     btnSizer->Add(button, 0, wxEXPAND);
-    btnSizer->Add(new wxStaticText(gridPanel, wxID_ANY, childEntry->Name()));
+    btnSizer->Add(staticText);
 
     grid->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
     progressDlg.Pulse();
@@ -126,6 +129,9 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
   gridPanel->Show(true);
   gridPanel->Scroll(0, 0);
   progressDlg.Update(100);
+
+  Refresh();
+  Update();
 }
 
 void MainFrame::OnImageButtonClick(wxCommandEvent &event) {

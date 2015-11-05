@@ -14,10 +14,6 @@ FileEntry *FileEntry::Create(const wxFileName &filename) {
   entryMap[filename] = root;
 
   for (int i = 0; i < paths.Count(); i++) {
-    std::cout << i << ": " << paths[i] << std::endl;
-  }
-
-  for (int i = 0; i < paths.Count(); i++) {
     AddChildrenFromPath(entryMap, paths.Item(i));
   }
 
@@ -41,7 +37,7 @@ FileEntry::FileEntry(const wxFileName &filename) : filename(filename) {
     auto name = filename.GetDirs()[count - 1];
     SetName(name);
   } else {
-    std::cout << filename.GetFullName() << "." << std::endl;
+
     SetName(filename.GetFullName());
     SetIsDirectory(false);
   }
@@ -64,8 +60,6 @@ FileEntry *FileEntry::AddChildrenFromPath(
   } else {
     parentFileName.SetFullName("");
   }
-  std::cout << "filename : " << filename.GetFullPath() << std::endl;
-  std::cout << "parent : " << parentFileName.GetFullPath() << std::endl;
 
   auto parent = AddChildrenFromPath(entryMap, parentFileName);
   auto child = new FileEntry(filename);
