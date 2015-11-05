@@ -36,6 +36,8 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   outerSizer->Add(notebook, 1, wxEXPAND | wxALL, 5);
 
   splitter = new wxSplitterWindow(notebook, wxID_ANY);
+  splitter->Bind(wxEVT_SPLITTER_DOUBLECLICKED,
+                 [](wxSplitterEvent &event) { event.Veto(); }, wxID_ANY);
   dirTree =
       new wxTreeCtrl(splitter, ID_DIRECTORY_TREE, wxDefaultPosition,
                      wxDefaultSize, wxTR_SINGLE | wxTR_FULL_ROW_HIGHLIGHT);
