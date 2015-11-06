@@ -22,15 +22,16 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   currentFileCtrl =
       new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
                      wxDefaultSize, wxTE_READONLY);
+
   dirBrowseBtn = new wxButton(this, wxID_ANY, "Directory...");
   dirBrowseBtn->Bind(wxEVT_BUTTON, &MainFrame::OnDirBrowsePressed, this);
   zipBrowseBtn = new wxButton(this, wxID_ANY, "Zip...");
   zipBrowseBtn->Bind(wxEVT_BUTTON, &MainFrame::OnZipBrowsePressed, this);
 
-  toolSizer->Add(currentFileCtrl, 1, wxEXPAND | wxALL);
-  toolSizer->Add(dirBrowseBtn, 0, wxEXPAND | wxALL);
-  toolSizer->Add(zipBrowseBtn, 0, wxEXPAND | wxALL);
-  toolSizer->Add(onTopChk, 0, wxEXPAND | wxALL);
+  toolSizer->Add(currentFileCtrl, 1, wxEXPAND);
+  toolSizer->Add(dirBrowseBtn, 0, wxEXPAND | wxLEFT | wxALIGN_BOTTOM, 5);
+  toolSizer->Add(zipBrowseBtn, 0, wxEXPAND | wxLEFT | wxALIGN_BOTTOM, 5);
+  toolSizer->Add(onTopChk, 0, wxEXPAND | wxLEFT | wxALIGN_BOTTOM, 5);
 
   outerSizer->Add(toolSizer, 0, wxEXPAND | wxALL, 5);
   outerSizer->Add(notebook, 1, wxEXPAND | wxALL, 5);
@@ -57,8 +58,9 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
 
   notebook->AddPage(splitter, "Browse");
 
-  SetMinSize({640, 480});
   SetSizer(outerSizer);
+  SetMinSize({640, 480});
+  SetSize({640, 480});
 }
 
 void MainFrame::BuildDirectoryTree() {
@@ -130,10 +132,9 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
   grid->FitInside(gridPanel);
   gridPanel->Show(true);
   gridPanel->Scroll(0, 0);
-  progressDlg.Update(100);
 
-  Refresh();
-  Update();
+  gridPanel->Refresh();
+  gridPanel->Update();
 }
 
 void MainFrame::OnImageButtonClick(wxCommandEvent &event) {
