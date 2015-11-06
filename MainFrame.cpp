@@ -182,7 +182,7 @@ void MainFrame::OnDirBrowsePressed(wxCommandEvent &event) {
   wxFileName filename = wxFileName::DirName(dlg.GetPath());
   auto entry = FileEntry::Create(filename);
   SetEntry(entry);
-  currentFileCtrl->SetLabelText(filename.GetFullPath());
+  currentFileCtrl->SetValue(filename.GetFullPath());
 }
 
 void MainFrame::OnZipBrowsePressed(wxCommandEvent &event) {
@@ -197,20 +197,20 @@ void MainFrame::OnZipBrowsePressed(wxCommandEvent &event) {
 
   auto entry = ZipEntry::Create(path);
   SetEntry(entry);
-  currentFileCtrl->SetLabelText(filename.GetFullPath());
+  currentFileCtrl->SetValue(filename.GetFullPath());
 }
 
 void MainFrame::SetEntry(Entry *entry) {
   auto oldEntry = MainFrame::entry;
   MainFrame::entry = entry;
 
-  dirTree->UnselectAll();
   dirTree->DeleteAllItems();
 
   BuildDirectoryTree();
 
-  dirTree->SelectItem(dirTree->GetRootItem());
   dirTree->ExpandAll();
+  dirTree->UnselectAll();
+  dirTree->SelectItem(dirTree->GetRootItem());
 
   if (oldEntry) {
     delete oldEntry;
