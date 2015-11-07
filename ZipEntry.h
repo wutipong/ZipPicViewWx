@@ -6,6 +6,8 @@
 #define ZIPPICVIEW_ZIPENTRY_H
 
 #include <zip.h>
+#include <wx/thread.h>
+
 #include "Entry.h"
 class ZipEntry : public Entry {
 public:
@@ -17,16 +19,17 @@ public:
   virtual wxImage LoadImage() override;
 
   virtual ~ZipEntry();
-  bool IsRoot() const { return innerPath.IsEmpty(); }
+  virtual bool IsRoot() const { return innerPath.IsEmpty(); }
 
 private:
-  static ZipEntry *AddChildrenFromPath(zip_t *zipFile,
+  static ZipEntry *AddChildrenFromPath(zip_t *zipFile, wxMutex *mutex,
                                        std::map<wxString, ZipEntry *> &entryMap,
                                        const wxString &innerPath);
 
-  ZipEntry(zip_t *zipFile, const wxString &innerPath);
+  ZipEntry(zip_t *zipFile, wxMutex *mutex, const wxString &innerPath);
   zip_t *zipFile;
   wxString innerPath;
+  wxMutex *mutex;
 };
 
 #endif // ZIPPICVIEW_ZIPENTRY_H

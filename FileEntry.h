@@ -3,28 +3,34 @@
 
 #include <wx/filename.h>
 #include <wx/dir.h>
+#include <wx/thread.h>
+
 #include <map>
 #include <functional>
 #include "Entry.h"
 
 class FileEntry : public Entry {
 public:
+  typedef std::map<wxFileName, FileEntry *,
+                   std::function<bool(const wxFileName &, const wxFileName &)>>
+      EntryMap;
+
   FileEntry() = delete;
   FileEntry(const FileEntry &) = delete;
-
+  virtual ~FileEntry();
   static FileEntry *Create(const wxFileName &filename);
 
   virtual wxImage LoadImage() override;
+  virtual bool IsRoot() const { return isRoot; }
 
 private:
-  FileEntry(const wxFileName &filename);
+  FileEntry(const wxFileName &filename, const bool &isRoot = false);
   wxFileName filename;
+  wxMutex *mutex;
+  bool isRoot{false};
 
-  static FileEntry *AddChildrenFromPath(
-      std::map<wxFileName, FileEntry *,
-               std::function<bool(const wxFileName &, const wxFileName &)>>
-          &entryMap,
-      const wxFileName &filename);
+  static FileEntry *AddChildrenFromPath(EntryMap &entryMap,
+                                        const wxFileName &filename);
 };
 
 #endif

@@ -10,8 +10,8 @@
 
 #include "ZipEntry.h"
 
-ZipEntry::ZipEntry(zip_t *zipFile, const wxString &innerPath)
-    : zipFile(zipFile), innerPath(innerPath) {
+ZipEntry::ZipEntry(zip_t *zipFile, wxMutex *mutex, const wxString &innerPath)
+    : zipFile(zipFile), mutex(mutex), innerPath(innerPath) {
   if (innerPath == "") {
     SetIsDirectory(true);
     SetName("/");
@@ -32,6 +32,7 @@ ZipEntry::ZipEntry(zip_t *zipFile, const wxString &innerPath)
 }
 
 wxImage ZipEntry::LoadImage() {
+  mutex->Lock();
   if (IsDirectory())
     return wxImage();
 
@@ -47,13 +48,14 @@ wxImage ZipEntry::LoadImage() {
   wxImage output(stream);
 
   delete[] buffer;
-
+  mutex->Unlock();
   return output;
 }
 
 ZipEntry::~ZipEntry() {
   if (IsRoot()) {
     zip_close(zipFile);
+    delete mutex;
   }
 }
 
@@ -66,7 +68,8 @@ ZipEntry *ZipEntry::Create(const wxString &path) {
   if (zipFile == nullptr) {
     throw error;
   }
-  ZipEntry *root = new ZipEntry(zipFile, "");
+  auto mutex = new wxMutex();
+  ZipEntry *root = new ZipEntry(zipFile, mutex, "");
 
   std::vector<wxString> innerPaths;
 
@@ -81,14 +84,14 @@ ZipEntry *ZipEntry::Create(const wxString &path) {
 
   entryMap[""] = root;
   for (auto &path : innerPaths) {
-    AddChildrenFromPath(zipFile, entryMap, path);
+    AddChildrenFromPath(zipFile, mutex, entryMap, path);
   }
 
   return root;
 }
 
 ZipEntry *
-ZipEntry::AddChildrenFromPath(zip_t *zipFile,
+ZipEntry::AddChildrenFromPath(zip_t *zipFile, wxMutex *mutex,
                               std::map<wxString, ZipEntry *> &entryMap,
                               const wxString &innerPath) {
   auto iter = entryMap.find(innerPath);
@@ -106,8 +109,8 @@ ZipEntry::AddChildrenFromPath(zip_t *zipFile,
   if (parentPath != "")
     parentPath += "/";
 
-  auto parent = AddChildrenFromPath(zipFile, entryMap, parentPath);
-  auto child = new ZipEntry(zipFile, innerPath);
+  auto parent = AddChildrenFromPath(zipFile, mutex, entryMap, parentPath);
+  auto child = new ZipEntry(zipFile, mutex, innerPath);
 
   parent->AddChild(child);
   entryMap[innerPath] = child;

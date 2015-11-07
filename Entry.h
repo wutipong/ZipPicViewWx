@@ -44,8 +44,10 @@ public:
     }
   }
   size_t Count() { return children.size(); }
-  Entry *Child(const size_t& i) { return children[i]; };
-  Entry *operator[](const size_t& i) { return Child(i);};
+  Entry *Child(const size_t &i) { return children[i]; };
+  Entry *operator[](const size_t &i) { return Child(i); };
+
+  virtual bool IsRoot() const = 0;
 
 private:
   std::vector<Entry *> children;

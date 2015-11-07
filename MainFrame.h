@@ -7,10 +7,12 @@
 #include <wx/treectrl.h>
 #include <wx/progdlg.h>
 #include <wx/splitter.h>
+#include <wx/gauge.h>
 
 #include <vector>
 #include <map>
 #include "Entry.h"
+#include "ThumbnailLoadThread.h"
 
 class MainFrame : public wxFrame {
 public:
@@ -25,6 +27,9 @@ private:
   wxTextCtrl *currentFileCtrl;
   wxButton *dirBrowseBtn;
   wxButton *zipBrowseBtn;
+  wxGauge *progress;
+  ThumbnailLoadThread *loadThread;
+  std::vector<wxButton *> imgButtons;
 
   void OnTreeSelectionChanged(wxTreeEvent &event);
   void OnImageButtonClick(wxCommandEvent &event);
@@ -32,6 +37,8 @@ private:
   void OnOnTopChecked(wxCommandEvent &event);
   void OnDirBrowsePressed(wxCommandEvent &event);
   void OnZipBrowsePressed(wxCommandEvent &event);
+  void OnThumbnailLoadUpdated(wxThreadEvent &event);
+  void OnThumbnailLoadDone(wxThreadEvent &event);
 
   void BuildDirectoryTree();
   void AddTreeItemsFromEntry(const wxTreeItemId &itemId, Entry *entry);

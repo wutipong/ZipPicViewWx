@@ -33,8 +33,11 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   toolSizer->Add(zipBrowseBtn, 0, wxEXPAND | wxLEFT | wxALIGN_BOTTOM, 5);
   toolSizer->Add(onTopChk, 0, wxEXPAND | wxLEFT | wxALIGN_BOTTOM, 5);
 
+  progress = new wxGauge(this, wxID_ANY, 100);
+
   outerSizer->Add(toolSizer, 0, wxEXPAND | wxALL, 5);
   outerSizer->Add(notebook, 1, wxEXPAND | wxALL, 5);
+  outerSizer->Add(progress, 0);
 
   splitter = new wxSplitterWindow(notebook, wxID_ANY);
   splitter->Bind(wxEVT_SPLITTER_DOUBLECLICKED,
@@ -57,6 +60,9 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   splitter->SplitVertically(dirTree, rightWindow, 250);
 
   notebook->AddPage(splitter, "Browse");
+
+  Bind(wxEVT_COMMAND_THMBTREAD_UPDATE, OnThumbnailLoadUpdated, this);
+  Bind(wxEVT_COMMAND_THMBTREAD_DONE, OnThumbnailLoadDone, this);
 
   SetSizer(outerSizer);
   SetMinSize({640, 480});
@@ -82,42 +88,32 @@ void MainFrame::AddTreeItemsFromEntry(const wxTreeItemId &itemId,
 }
 
 void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
-  wxProgressDialog progressDlg("Loading", "Please Wait");
-
   auto treeItemId = event.GetItem();
   auto rootId = dirTree->GetRootItem();
   auto currentFileEntry =
       dynamic_cast<EntryItemData *>(dirTree->GetItemData(treeItemId))->Get();
 
-  progressDlg.SetRange(currentFileEntry->Count());
   auto gridPanel = dynamic_cast<wxScrolledWindow *>(splitter->GetWindow2());
   gridPanel->Show(false);
   auto grid = gridPanel->GetSizer();
   grid->Clear(true);
 
-  for (int i = 0; i<currentFileEntry->Count(); ++i) {
-	Entry *childEntry = (*currentFileEntry)[i];
-	progressDlg.Update(i, 
-	    wxString::Format("%s    (%d/%d)", childEntry->Name(), (int)i, (int)currentFileEntry->Count()));
+  std::vector<Entry *> loadEntries;
+  imgButtons.clear();
+  for (int i = 0; i < currentFileEntry->Count(); ++i) {
+    Entry *childEntry = (*currentFileEntry)[i];
+
     if (childEntry->IsDirectory())
       continue;
-
+    loadEntries.push_back(childEntry);
     auto ext = childEntry->Name().AfterLast('.').Lower();
 
     if (ext != "jpg" && ext != "jpeg" && ext != "png" && ext != "gif")
       continue;
-
-    auto image = childEntry->LoadImage();
     auto button = new wxButton(gridPanel, wxID_ANY);
+    imgButtons.push_back(button);
     button->Bind(wxEVT_BUTTON, &MainFrame::OnImageButtonClick, this);
 
-    int longerSide = image.GetWidth() > image.GetHeight() ? image.GetWidth()
-                                                          : image.GetHeight();
-    int width = 200 * image.GetWidth() / longerSide;
-    int height = 200 * image.GetHeight() / longerSide;
-    auto thumbnailImage = image.Scale(width, height, wxIMAGE_QUALITY_HIGH);
-
-    button->SetBitmap(thumbnailImage, wxBOTTOM);
     button->SetClientObject(new EntryItemData(childEntry));
     button->SetMinSize({250, 250});
 
@@ -131,6 +127,16 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
     grid->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
   }
 
+  if (loadThread) {
+    loadThread->Delete();
+    delete loadThread;
+    loadThread = nullptr;
+  }
+
+  loadThread = new ThumbnailLoadThread(this, loadEntries);
+  loadThread->Run();
+
+  progress->SetRange(loadEntries.size());
   grid->FitInside(gridPanel);
   gridPanel->Show(true);
   gridPanel->Scroll(0, 0);
@@ -217,4 +223,14 @@ void MainFrame::SetEntry(Entry *entry) {
   if (oldEntry) {
     delete oldEntry;
   }
+}
+
+void MainFrame::OnThumbnailLoadUpdated(wxThreadEvent &event) {
+  auto data = event.GetPayload<ThumbnailData>();
+  progress->SetValue(data.index);
+  imgButtons[data.index]->SetBitmap(data.image);
+}
+
+void MainFrame::OnThumbnailLoadDone(wxThreadEvent &event) {
+  progress->SetValue(progress->GetRange());
 }

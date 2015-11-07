@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 project(ZipPicView CXX)
 set(CMAKE_CXX_STANDARD 11)
 
-set(SRC ZipPicView MainFrame.cpp ZipPicViewApp.cpp ImageViewPanel.cpp Entry.h ZipEntry.cpp ZipEntry.h FileEntry.cpp FileEntry.h)
+set(SRC ZipPicView MainFrame.cpp ZipPicViewApp.cpp ImageViewPanel.cpp Entry.h ZipEntry.cpp ZipEntry.h FileEntry.cpp FileEntry.h ThumbnailLoadThread.cpp ThumbnailLoadThread.h)
 
 if (WINDOWS OR MSYS)
     enable_language(RC)

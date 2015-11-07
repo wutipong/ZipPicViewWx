@@ -3,14 +3,13 @@
 
 FileEntry *FileEntry::Create(const wxFileName &filename) {
   wxArrayString paths;
+
   auto root = new FileEntry(filename);
   wxDir::GetAllFiles(filename.GetPath(), &paths);
   auto cmp = [](const wxFileName &f1, const wxFileName &f2) {
     return f1.GetFullPath() < f2.GetFullPath();
   };
-  std::map<wxFileName, FileEntry *,
-           std::function<bool(const wxFileName &, const wxFileName &)>>
-      entryMap(cmp);
+  EntryMap entryMap(cmp);
   entryMap[filename] = root;
 
   for (int i = 0; i < paths.Count(); i++) {
@@ -21,16 +20,20 @@ FileEntry *FileEntry::Create(const wxFileName &filename) {
 }
 
 wxImage FileEntry::LoadImage() {
+  mutex->Lock();
   if (IsDirectory())
     return wxImage();
 
   wxFileInputStream stream(filename.GetFullPath());
   wxImage output(stream);
+  mutex->Unlock();
 
   return output;
 }
 
-FileEntry::FileEntry(const wxFileName &filename) : filename(filename) {
+FileEntry::FileEntry(const wxFileName &filename, const bool &isRoot)
+    : filename(filename), isRoot(isRoot) {
+  mutex = new wxMutex();
   if (filename.IsDir()) {
     SetIsDirectory(true);
     auto count = filename.GetDirCount();
@@ -43,11 +46,8 @@ FileEntry::FileEntry(const wxFileName &filename) : filename(filename) {
   }
 }
 
-FileEntry *FileEntry::AddChildrenFromPath(
-    std::map<wxFileName, FileEntry *,
-             std::function<bool(const wxFileName &, const wxFileName &)>>
-        &entryMap,
-    const wxFileName &filename) {
+FileEntry *FileEntry::AddChildrenFromPath(EntryMap &entryMap,
+                                          const wxFileName &filename) {
   auto iter = entryMap.find(filename);
   if (iter != entryMap.end()) {
     return iter->second;
@@ -69,3 +69,5 @@ FileEntry *FileEntry::AddChildrenFromPath(
 
   return child;
 }
+
+FileEntry::~FileEntry() { delete mutex; }
