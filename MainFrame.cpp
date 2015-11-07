@@ -61,8 +61,8 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
 
   notebook->AddPage(splitter, "Browse");
 
-  Bind(wxEVT_COMMAND_THMBTREAD_UPDATE, OnThumbnailLoadUpdated, this);
-  Bind(wxEVT_COMMAND_THMBTREAD_DONE, OnThumbnailLoadDone, this);
+  Bind(wxEVT_COMMAND_THMBTREAD_UPDATE, &MainFrame::OnThumbnailLoadUpdated, this);
+  Bind(wxEVT_COMMAND_THMBTREAD_DONE, &MainFrame::OnThumbnailLoadDone, this);
 
   SetSizer(outerSizer);
   SetMinSize({640, 480});
@@ -105,11 +105,12 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
 
     if (childEntry->IsDirectory())
       continue;
-    loadEntries.push_back(childEntry);
     auto ext = childEntry->Name().AfterLast('.').Lower();
 
     if (ext != "jpg" && ext != "jpeg" && ext != "png" && ext != "gif")
       continue;
+
+    loadEntries.push_back(childEntry);
     auto button = new wxButton(gridPanel, wxID_ANY);
     imgButtons.push_back(button);
     button->Bind(wxEVT_BUTTON, &MainFrame::OnImageButtonClick, this);
@@ -127,16 +128,16 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
     grid->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
   }
 
+  progress->SetRange(loadEntries.size());
+
   if (loadThread) {
-    loadThread->Delete();
-    delete loadThread;
+    loadThread->Delete(nullptr, wxTHREAD_WAIT_BLOCK);
     loadThread = nullptr;
   }
 
   loadThread = new ThumbnailLoadThread(this, loadEntries);
   loadThread->Run();
 
-  progress->SetRange(loadEntries.size());
   grid->FitInside(gridPanel);
   gridPanel->Show(true);
   gridPanel->Scroll(0, 0);
@@ -227,10 +228,13 @@ void MainFrame::SetEntry(Entry *entry) {
 
 void MainFrame::OnThumbnailLoadUpdated(wxThreadEvent &event) {
   auto data = event.GetPayload<ThumbnailData>();
+  if(data.index > progress->GetRange()) return;
+
   progress->SetValue(data.index);
   imgButtons[data.index]->SetBitmap(data.image);
 }
 
 void MainFrame::OnThumbnailLoadDone(wxThreadEvent &event) {
   progress->SetValue(progress->GetRange());
+  loadThread = nullptr;
 }
