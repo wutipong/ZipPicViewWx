@@ -89,15 +89,18 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
   auto currentFileEntry =
       dynamic_cast<EntryItemData *>(dirTree->GetItemData(treeItemId))->Get();
 
-  progressDlg.Pulse();
+  progressDlg.SetRange(currentFileEntry->Count());
   auto gridPanel = dynamic_cast<wxScrolledWindow *>(splitter->GetWindow2());
   gridPanel->Show(false);
   auto grid = gridPanel->GetSizer();
   grid->Clear(true);
 
-  for (auto childEntry : *currentFileEntry) {
+  for (int i = 0; i<currentFileEntry->Count(); ++i) {
+	Entry *childEntry = (*currentFileEntry)[i];
+	progressDlg.Update(i, 
+	    wxString::Format("%s    (%d/%d)", childEntry->Name(), (int)i, (int)currentFileEntry->Count()));
     if (childEntry->IsDirectory())
-      return;
+      continue;
 
     auto ext = childEntry->Name().AfterLast('.').Lower();
 
@@ -126,7 +129,6 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
     btnSizer->Add(staticText);
 
     grid->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
-    progressDlg.Pulse();
   }
 
   grid->FitInside(gridPanel);

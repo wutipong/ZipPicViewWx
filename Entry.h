@@ -43,6 +43,9 @@ public:
       child->PrintChildren(level + 1);
     }
   }
+  size_t Count() { return children.size(); }
+  Entry *Child(const size_t& i) { return children[i]; };
+  Entry *operator[](const size_t& i) { return Child(i);};
 
 private:
   std::vector<Entry *> children;
