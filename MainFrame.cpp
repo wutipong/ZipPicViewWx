@@ -10,9 +10,6 @@
 enum MainFrameIds { ID_DIRECTORY_TREE = 1, ID_IMAGE_BUTTON };
 
 MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
-  auto statusBar = CreateStatusBar();
-  SetStatusText("Welcome to ZipPicView!");
-
   auto outerSizer = new wxBoxSizer(wxVERTICAL);
   auto toolSizer = new wxBoxSizer(wxHORIZONTAL);
   onTopChk = new wxCheckBox(this, wxID_ANY, "On Top");
@@ -34,10 +31,18 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   toolSizer->Add(onTopChk, 0, wxEXPAND | wxLEFT | wxALIGN_BOTTOM, 5);
 
   progress = new wxGauge(this, wxID_ANY, 100);
+  progressDescText = new wxStaticText(this, wxID_ANY, "Idle");
+  progressDescText->SetMinSize({250, 20});
+
+  auto progressSizer = new wxBoxSizer(wxHORIZONTAL);
+  progressSizer->AddStretchSpacer();
+  progressSizer->Add(progressDescText, 0, wxEXPAND | wxALL | wxALIGN_RIGHT, 5);
+  progressSizer->AddSpacer(5);
+  progressSizer->Add(progress, 0, wxEXPAND | wxALL | wxALIGN_RIGHT, 5);
 
   outerSizer->Add(toolSizer, 0, wxEXPAND | wxALL, 5);
   outerSizer->Add(notebook, 1, wxEXPAND | wxALL, 5);
-  outerSizer->Add(progress, 0);
+  outerSizer->Add(progressSizer, 0);
 
   splitter = new wxSplitterWindow(notebook, wxID_ANY);
   splitter->Bind(wxEVT_SPLITTER_DOUBLECLICKED,
@@ -61,7 +66,8 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
 
   notebook->AddPage(splitter, "Browse");
 
-  Bind(wxEVT_COMMAND_THMBTREAD_UPDATE, &MainFrame::OnThumbnailLoadUpdated, this);
+  Bind(wxEVT_COMMAND_THMBTREAD_UPDATE, &MainFrame::OnThumbnailLoadUpdated,
+       this);
   Bind(wxEVT_COMMAND_THMBTREAD_DONE, &MainFrame::OnThumbnailLoadDone, this);
 
   SetSizer(outerSizer);
@@ -129,6 +135,8 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
   }
 
   progress->SetRange(loadEntries.size());
+  progressDescText->SetLabelText(wxString::Format("Loading Thumbnail %i of %i",
+                                                  1, (int)loadEntries.size()));
 
   if (loadThread) {
     loadThread->Delete(nullptr, wxTHREAD_WAIT_BLOCK);
@@ -228,13 +236,17 @@ void MainFrame::SetEntry(Entry *entry) {
 
 void MainFrame::OnThumbnailLoadUpdated(wxThreadEvent &event) {
   auto data = event.GetPayload<ThumbnailData>();
-  if(data.index > progress->GetRange()) return;
+  if (data.index > progress->GetRange())
+    return;
 
   progress->SetValue(data.index);
+  progressDescText->SetLabelText(wxString::Format("Loading Thumbnail %i of %i",
+                                                  data.index + 2, data.total));
   imgButtons[data.index]->SetBitmap(data.image);
 }
 
 void MainFrame::OnThumbnailLoadDone(wxThreadEvent &event) {
+  progressDescText->SetLabelText("Idle");
   progress->SetValue(progress->GetRange());
   loadThread = nullptr;
 }

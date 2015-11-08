@@ -28,6 +28,8 @@ private:
   wxButton *dirBrowseBtn;
   wxButton *zipBrowseBtn;
   wxGauge *progress;
+  wxStaticText *progressDescText;
+
   ThumbnailLoadThread *loadThread;
   std::vector<wxButton *> imgButtons;
 

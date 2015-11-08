@@ -27,6 +27,7 @@ private:
 
 struct ThumbnailData {
   int index;
+  int total;
   wxImage image;
 };
 

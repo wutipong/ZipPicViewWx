@@ -1,11 +1,13 @@
 #include "ThumbnailLoadThread.h"
 
 #include "MainFrame.h"
+#include <wx/log.h>
 
 wxThread::ExitCode ThumbnailLoadThread::Entry() {
   for (auto i = 0; i < entries.size(); ++i) {
     if (TestDestroy())
       break;
+
     auto entry = entries[i];
     auto image = entry->LoadImage();
 
@@ -20,6 +22,7 @@ wxThread::ExitCode ThumbnailLoadThread::Entry() {
     ThumbnailData data;
     data.index = i;
     data.image = thumbnailImage;
+    data.total = entries.size();
     event->SetPayload(data);
 
     wxQueueEvent(m_pHandler, event);
