@@ -20,7 +20,7 @@ if (MSYS)
 	
 	if(CMAKE_SIZEOF_VOID_P EQUAL 8) #win64
 		set ( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}  
-			${Mingw_Path}libgcc_s_seh-1.dll ${Mingw_Path}/libstdc++-6.dll)
+			${Mingw_Path}/libgcc_s_seh-1.dll ${Mingw_Path}/libstdc++-6.dll)
 	else() #win32
 		set ( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
 			${Mingw_Path}/libgcc_s_dw2-1.dll ${Mingw_Path}/libstdc++-6.dll)
