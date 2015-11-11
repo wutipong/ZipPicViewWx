@@ -10,19 +10,23 @@
 enum MainFrameIds { ID_DIRECTORY_TREE = 1, ID_IMAGE_BUTTON };
 
 MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
+  //auto topSizer = new wxBoxSizer( wxHORIZONTAL );
+  auto panel = new wxPanel(this);
+  
   auto outerSizer = new wxBoxSizer(wxVERTICAL);
+  panel->SetSizer(outerSizer);
   auto toolSizer = new wxBoxSizer(wxHORIZONTAL);
-  onTopChk = new wxCheckBox(this, wxID_ANY, "On Top");
+  onTopChk = new wxCheckBox(panel, wxID_ANY, "On Top");
   onTopChk->Bind(wxEVT_CHECKBOX, &MainFrame::OnOnTopChecked, this);
-  notebook = new wxNotebook(this, wxID_ANY);
+  notebook = new wxNotebook(panel, wxID_ANY);
 
   currentFileCtrl =
-      new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
+      new wxTextCtrl(panel, wxID_ANY, wxEmptyString, wxDefaultPosition,
                      wxDefaultSize, wxTE_READONLY);
 
-  dirBrowseBtn = new wxButton(this, wxID_ANY, "Directory...");
+  dirBrowseBtn = new wxButton(panel, wxID_ANY, "Directory...");
   dirBrowseBtn->Bind(wxEVT_BUTTON, &MainFrame::OnDirBrowsePressed, this);
-  zipBrowseBtn = new wxButton(this, wxID_ANY, "Zip...");
+  zipBrowseBtn = new wxButton(panel, wxID_ANY, "Zip...");
   zipBrowseBtn->Bind(wxEVT_BUTTON, &MainFrame::OnZipBrowsePressed, this);
 
   toolSizer->Add(currentFileCtrl, 1, wxEXPAND);
@@ -30,8 +34,8 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   toolSizer->Add(zipBrowseBtn, 0, wxEXPAND | wxLEFT | wxALIGN_BOTTOM, 5);
   toolSizer->Add(onTopChk, 0, wxEXPAND | wxLEFT | wxALIGN_BOTTOM, 5);
 
-  progress = new wxGauge(this, wxID_ANY, 100);
-  progressDescText = new wxStaticText(this, wxID_ANY, "Idle");
+  progress = new wxGauge(panel, wxID_ANY, 100);
+  progressDescText = new wxStaticText(panel, wxID_ANY, "Idle");
   progressDescText->SetMinSize({250, 20});
 
   auto progressSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -61,6 +65,7 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   rightWindow->SetSizer(grid);
   rightWindow->SetScrollRate(10, 10);
   rightWindow->SetMinSize({250, 250});
+  rightWindow->SetWindowStyle(wxBORDER_SIMPLE);
   rightWindow->Bind(wxEVT_SIZE, &MainFrame::OnGridPanelSize, this);
   splitter->SplitVertically(dirTree, rightWindow, 250);
 
@@ -70,7 +75,6 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
        this);
   Bind(wxEVT_COMMAND_THMBTREAD_DONE, &MainFrame::OnThumbnailLoadDone, this);
 
-  SetSizer(outerSizer);
   SetMinSize({640, 480});
   SetSize({640, 480});
 }
