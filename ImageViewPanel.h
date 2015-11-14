@@ -2,6 +2,8 @@
 #define __IMAGE_VIEW_PANEL__
 
 #include <wx/wx.h>
+#include <wx/spinctrl.h>
+#include <wx/button.h>
 
 class ImageViewPanel : public wxPanel {
 public:
@@ -18,9 +20,14 @@ private:
   wxScrolledWindow *scrollPanel;
   wxBoxSizer *scrollSizer;
   wxImage image;
+  wxSpinCtrl *spinctrl;
 
   void OnCloseButtonClick(wxCommandEvent &event);
+  void OnBtnFitSizePressed(wxCommandEvent &event);
+  void OnBtnActualSizePressed(wxCommandEvent &event);
   void OnScaleValueChanged(wxSpinEvent &event);
+
+  void ResizeImage(const int& percentage);
 };
 
 #endif
