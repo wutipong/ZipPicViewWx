@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 project(ZipPicView CXX)
 set(CMAKE_CXX_STANDARD 11)
 
-set(SRC MainFrame.cpp ZipPicViewApp.cpp ImageViewPanel.cpp Entry.h ZipEntry.cpp ZipEntry.h 
+set(SRC MainFrame.cpp ZipPicViewApp.cpp ImageViewPanel.cpp Entry.h ZipEntry.cpp ZipEntry.h
 	FileEntry.cpp FileEntry.h ThumbnailLoadThread.cpp ThumbnailLoadThread.h)
 
 if (MSYS)
@@ -12,14 +12,15 @@ if (MSYS)
     set(SRC ${SRC} resource.rc)
 	INCLUDE(InstallRequiredSystemLibraries)
 	get_filename_component( Mingw_Path ${CMAKE_CXX_COMPILER} PATH )
-	
-    set( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS ${Mingw_Path}/wxbase30u_gcc_custom.dll 
-		${Mingw_Path}/wxmsw30u_core_gcc_custom.dll ${Mingw_Path}/libjpeg-8.dll 
-		${Mingw_Path}/liblzma-5.dll ${Mingw_Path}/libpng16-16.dll 
-		${Mingw_Path}/libtiff-5.dll ${Mingw_Path}/libzip-4.dll ${Mingw_Path}/zlib1.dll )
-	
+
+    set( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS ${Mingw_Path}/wxbase30u_gcc_custom.dll
+		${Mingw_Path}/wxmsw30u_core_gcc_custom.dll ${Mingw_Path}/libjpeg-8.dll
+		${Mingw_Path}/liblzma-5.dll ${Mingw_Path}/libpng16-16.dll
+		${Mingw_Path}/libtiff-5.dll ${Mingw_Path}/libzip-4.dll ${Mingw_Path}/zlib1.dll
+		${Mingw_Path}/libwinpthread-1.dll)
+
 	if(CMAKE_SIZEOF_VOID_P EQUAL 8) #win64
-		set ( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}  
+		set ( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
 			${Mingw_Path}/libgcc_s_seh-1.dll ${Mingw_Path}/libstdc++-6.dll)
 	else() #win32
 		set ( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
