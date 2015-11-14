@@ -75,6 +75,7 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
        this);
   Bind(wxEVT_COMMAND_THMBTREAD_DONE, &MainFrame::OnThumbnailLoadDone, this);
 
+  SetMinSize({480, 480});
   SetSize({640, 480});
 }
 
