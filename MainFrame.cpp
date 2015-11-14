@@ -10,9 +10,9 @@
 enum MainFrameIds { ID_DIRECTORY_TREE = 1, ID_IMAGE_BUTTON };
 
 MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
-  //auto topSizer = new wxBoxSizer( wxHORIZONTAL );
+
   auto panel = new wxPanel(this);
-  
+
   auto outerSizer = new wxBoxSizer(wxVERTICAL);
   panel->SetSizer(outerSizer);
   auto toolSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -75,7 +75,6 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
        this);
   Bind(wxEVT_COMMAND_THMBTREAD_DONE, &MainFrame::OnThumbnailLoadDone, this);
 
-  SetMinSize({640, 480});
   SetSize({640, 480});
 }
 
@@ -194,7 +193,7 @@ void MainFrame::OnOnTopChecked(wxCommandEvent &event) {
 }
 
 void MainFrame::OnDirBrowsePressed(wxCommandEvent &event) {
-  wxDirDialog dlg(NULL, "Choose directory", "",
+  wxDirDialog dlg(this, "Choose directory", "",
                   wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
   if (dlg.ShowModal() == wxID_CANCEL)
     return;
