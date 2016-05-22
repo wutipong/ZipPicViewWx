@@ -1,13 +1,13 @@
 #ifndef ZIPPICVIEW_FILEENTRY_H
 #define ZIPPICVIEW_FILEENTRY_H
 
-#include <wx/filename.h>
 #include <wx/dir.h>
+#include <wx/filename.h>
 #include <wx/thread.h>
 
-#include <map>
-#include <functional>
 #include "Entry.h"
+#include <functional>
+#include <map>
 
 class FileEntry : public Entry {
 public:
@@ -21,7 +21,7 @@ public:
   static FileEntry *Create(const wxFileName &filename);
 
   virtual wxImage LoadImage() override;
-  virtual bool IsRoot() const { return isRoot; }
+  virtual bool IsRoot() const override { return isRoot; }
 
 private:
   FileEntry(const wxFileName &filename, const bool &isRoot = false);

@@ -5,8 +5,8 @@
 #ifndef ZIPPICVIEW_ZIPENTRY_H
 #define ZIPPICVIEW_ZIPENTRY_H
 
-#include <zip.h>
 #include <wx/thread.h>
+#include <zip.h>
 
 #include "Entry.h"
 class ZipEntry : public Entry {
@@ -19,7 +19,7 @@ public:
   virtual wxImage LoadImage() override;
 
   virtual ~ZipEntry();
-  virtual bool IsRoot() const { return innerPath.IsEmpty(); }
+  virtual bool IsRoot() const override { return innerPath.IsEmpty(); }
 
 private:
   static ZipEntry *AddChildrenFromPath(zip_t *zipFile, wxMutex *mutex,
