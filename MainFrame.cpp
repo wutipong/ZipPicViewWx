@@ -1,11 +1,11 @@
 #include "MainFrame.h"
-#include <algorithm>
-#include <wx/log.h>
-#include <wx/mstream.h>
-#include <wx/button.h>
+#include "FileEntry.h"
 #include "ImageViewPanel.h"
 #include "ZipEntry.h"
-#include "FileEntry.h"
+#include <algorithm>
+#include <wx/button.h>
+#include <wx/log.h>
+#include <wx/mstream.h>
 
 enum MainFrameIds { ID_DIRECTORY_TREE = 1, ID_IMAGE_BUTTON };
 
@@ -121,14 +121,20 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
       continue;
 
     loadEntries.push_back(childEntry);
+  }
+
+  std::sort(loadEntries.begin(), loadEntries.end(),
+            [](Entry *e1, Entry *e2) { return e1->Name() < e2->Name(); });
+
+  for (auto entry : loadEntries) {
     auto button = new wxButton(gridPanel, wxID_ANY);
     imgButtons.push_back(button);
     button->Bind(wxEVT_BUTTON, &MainFrame::OnImageButtonClick, this);
 
-    button->SetClientObject(new EntryItemData(childEntry));
+    button->SetClientObject(new EntryItemData(entry));
     button->SetMinSize({250, 250});
 
-    auto staticText = new wxStaticText(gridPanel, wxID_ANY, childEntry->Name());
+    auto staticText = new wxStaticText(gridPanel, wxID_ANY, entry->Name());
     staticText->SetMaxSize({250, 50});
 
     auto btnSizer = new wxBoxSizer(wxVERTICAL);
