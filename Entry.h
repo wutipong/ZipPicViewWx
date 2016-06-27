@@ -8,8 +8,8 @@
 #include <iostream>
 #include <vector>
 
-#include <wx/string.h>
 #include <wx/image.h>
+#include <wx/string.h>
 #include <wx/treebase.h>
 
 class Entry;
@@ -49,13 +49,20 @@ public:
 
   virtual bool IsRoot() const = 0;
 
+  Entry *Parent() { return parent; }
+
 private:
   std::vector<Entry *> children;
   wxString name;
   bool dir;
+  Entry *parent = nullptr;
 
 protected:
-  void AddChild(Entry *entry) { children.push_back(entry); }
+  void SetParent(Entry *parent) { this->parent = parent; }
+  void AddChild(Entry *entry) {
+    children.push_back(entry);
+    entry->SetParent(this);
+  }
   void SetName(const wxString &_name) { name = _name; }
   void SetIsDirectory(const bool &_dir) { dir = _dir; }
 };
