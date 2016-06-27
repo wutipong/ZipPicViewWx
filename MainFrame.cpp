@@ -172,7 +172,7 @@ void MainFrame::OnImageButtonClick(wxCommandEvent &event) {
   auto page = notebook->GetPageCount();
   auto childEntry =
       dynamic_cast<EntryItemData *>(button->GetClientObject())->Get();
-  auto bitmapCtl = new ImageViewPanel(notebook, childEntry->LoadImage());
+  auto bitmapCtl = new ImageViewPanel(notebook, childEntry);
   notebook->AddPage(bitmapCtl, childEntry->Name());
   notebook->SetSelection(page);
 }
@@ -204,7 +204,6 @@ void MainFrame::OnDirBrowsePressed(wxCommandEvent &event) {
                   wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
   if (dlg.ShowModal() == wxID_CANCEL)
     return;
-  auto oldEntry = entry;
 
   wxFileName filename = wxFileName::DirName(dlg.GetPath());
   auto entry = FileEntry::Create(filename);
