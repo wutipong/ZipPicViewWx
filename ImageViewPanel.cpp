@@ -54,8 +54,25 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
   outerSizer->Add(scrollPanel, 1, wxEXPAND | wxALL, 10);
   SetSizer(outerSizer);
 
-  entryParent = entry->Parent();
-  entryIter = std::find(entryParent->begin(), entryParent->end(), entry);
+  auto entryParent = entry->Parent();
+  for (int i = 0; i < entryParent->Count(); ++i) {
+    Entry *childEntry = (*entryParent)[i];
+
+    if (childEntry->IsDirectory())
+      continue;
+    auto ext = childEntry->Name().AfterLast('.').Lower();
+
+    if (ext != "jpg" && ext != "jpeg" && ext != "png" && ext != "gif")
+      continue;
+
+    entries.push_back(childEntry);
+  }
+
+  std::sort(entries.begin(), entries.end(),
+            [](Entry *e1, Entry *e2) { return e1->Name() < e2->Name(); });
+
+  entryIter = std::find(entries.begin(), entries.end(), entry);
+
   image = (*entryIter)->LoadImage();
 
   bitmap = new wxStaticBitmap(scrollPanel, wxID_ANY, wxBitmap(image));
@@ -114,8 +131,8 @@ void ImageViewPanel::ResizeImage(const int &percentage) {
 
 void ImageViewPanel::OnNextButtonClick(wxCommandEvent &event) {
   entryIter++;
-  if (entryIter == entryParent->end())
-    entryIter = entryParent->begin();
+  if (entryIter == entries.end())
+    entryIter = entries.begin();
   image = (*entryIter)->LoadImage();
   LoadImage();
 
@@ -127,9 +144,10 @@ void ImageViewPanel::OnNextButtonClick(wxCommandEvent &event) {
     return;
   notebook->SetPageText(currentPage, (*entryIter)->Name());
 }
+
 void ImageViewPanel::OnPrevButtonClick(wxCommandEvent &event) {
-  if (entryIter == entryParent->begin())
-    entryIter = entryParent->end() - 1;
+  if (entryIter == entries.begin())
+    entryIter = entries.end() - 1;
   else
     entryIter--;
   image = (*entryIter)->LoadImage();

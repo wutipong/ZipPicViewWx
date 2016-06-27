@@ -28,8 +28,8 @@ private:
   wxToggleButton *btnAuto;
   wxSpinCtrl *spnRefreshTime;
 
-  Entry *entryParent;
-  EntryIter entryIter;
+  std::vector<Entry *> entries;
+  std::vector<Entry *>::const_iterator entryIter;
 
   void OnCloseButtonClick(wxCommandEvent &event);
   void OnBtnFitSizePressed(wxCommandEvent &event);

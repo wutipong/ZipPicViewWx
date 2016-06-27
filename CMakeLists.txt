@@ -7,8 +7,6 @@ set(SRC MainFrame.cpp ZipPicViewApp.cpp ImageViewPanel.cpp Entry.h ZipEntry.cpp 
 
 if (MSYS)
     enable_language(RC)
-    #CMake does not play well with GCC's windres.
-    #set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> <DEFINES> -o <OBJECT> -i <SOURCE>")
     set(SRC ${SRC} resource.rc)
 	INCLUDE(InstallRequiredSystemLibraries)
 	get_filename_component( Mingw_Path ${CMAKE_CXX_COMPILER} PATH )
