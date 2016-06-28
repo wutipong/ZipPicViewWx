@@ -27,12 +27,14 @@ private:
   wxButton *btnPrev;
   wxToggleButton *btnAuto;
   wxSpinCtrl *spnRefreshTime;
+  wxToggleButton *btnFitSize;
+  wxButton *btnActualSize;
 
   std::vector<Entry *> entries;
   std::vector<Entry *>::const_iterator entryIter;
 
   void OnCloseButtonClick(wxCommandEvent &event);
-  void OnBtnFitSizePressed(wxCommandEvent &event);
+  void OnBtnFitSizeToggle(wxCommandEvent &event);
   void OnBtnActualSizePressed(wxCommandEvent &event);
   void OnScaleValueChanged(wxSpinEvent &event);
   void OnNextButtonClick(wxCommandEvent &event);
@@ -42,6 +44,7 @@ private:
 
   void FitImage();
   void SetImageEntry(Entry *entry);
+  virtual bool Layout() override;
 };
 
 #endif

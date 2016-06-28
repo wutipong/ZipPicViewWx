@@ -19,12 +19,14 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
   spnScale->SetRange(1, 200);
   spnScale->Bind(wxEVT_SPINCTRL, &ImageViewPanel::OnScaleValueChanged, this);
 
-  auto btnFitSize = new wxButton(this, wxID_ANY, "Fit", wxDefaultPosition,
-                                 wxDefaultSize, wxBU_EXACTFIT);
-  btnFitSize->Bind(wxEVT_BUTTON, &ImageViewPanel::OnBtnFitSizePressed, this);
+  btnFitSize = new wxToggleButton(this, wxID_ANY, "Fit", wxDefaultPosition,
+                                  wxDefaultSize, wxBU_EXACTFIT);
+  btnFitSize->Bind(wxEVT_TOGGLEBUTTON, &ImageViewPanel::OnBtnFitSizeToggle,
+                   this);
+  btnFitSize->SetValue(true);
 
-  auto btnActualSize = new wxButton(this, wxID_ANY, "Actual", wxDefaultPosition,
-                                    wxDefaultSize, wxBU_EXACTFIT);
+  btnActualSize = new wxButton(this, wxID_ANY, "Actual", wxDefaultPosition,
+                               wxDefaultSize, wxBU_EXACTFIT);
   btnActualSize->Bind(wxEVT_BUTTON, &ImageViewPanel::OnBtnActualSizePressed,
                       this);
 
@@ -111,10 +113,19 @@ void ImageViewPanel::OnScaleValueChanged(wxSpinEvent &event) {
 
 void ImageViewPanel::OnBtnActualSizePressed(wxCommandEvent &event) {
   spnScale->SetValue(100);
-  RefreshImage(100);
+  RefreshImage();
 }
 
-void ImageViewPanel::OnBtnFitSizePressed(wxCommandEvent &event) { FitImage(); }
+void ImageViewPanel::OnBtnFitSizeToggle(wxCommandEvent &event) {
+  if (btnFitSize->GetValue()) {
+    FitImage();
+    btnActualSize->Disable();
+    spnScale->Disable();
+  } else {
+    btnActualSize->Enable();
+    spnScale->Enable();
+  }
+}
 
 void ImageViewPanel::FitImage() {
   auto ctrlSize = scrollPanel->GetSize();
@@ -171,5 +182,15 @@ void ImageViewPanel::SetImageEntry(Entry *entry) {
   notebook->SetPageText(currentPage, entry->Name());
 
   image = entry->LoadImage();
-  RefreshImage();
+  if (btnFitSize->GetValue())
+    FitImage();
+  else
+    RefreshImage();
+}
+
+bool ImageViewPanel::Layout() {
+  wxPanel::Layout();
+  if (btnFitSize->GetValue())
+    FitImage();
+  return false;
 }
