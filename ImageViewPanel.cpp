@@ -7,7 +7,7 @@
 ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
                                const wxPoint &pos, const wxSize &size,
                                long style, const wxString &name)
-    : wxPanel(parent, id, pos, size, style, name) {
+    : wxPanel(parent, id, pos, size, style, name), timer(this) {
   auto outerSizer = new wxBoxSizer(wxVERTICAL);
   auto btnSizer = new wxBoxSizer(wxHORIZONTAL);
   btnClose = new wxButton(this, wxID_CLOSE, "Close", wxDefaultPosition,
@@ -29,19 +29,21 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
                                wxDefaultSize, wxBU_EXACTFIT);
   btnActualSize->Bind(wxEVT_BUTTON, &ImageViewPanel::OnBtnActualSizePressed,
                       this);
-
-  btnSizer->Add(btnClose, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 10);
+  btnActualSize->Disable();
+  spnScale->Disable();
+  btnSizer->Add(btnClose, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
   btnSizer->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition,
                                  wxDefaultSize, wxLI_VERTICAL),
-                0, wxRIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND, 10);
-  btnSizer->Add(spnScale, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 10);
-  btnSizer->Add(new wxStaticText(this, wxID_ANY, "%"), 0,
-                wxRIGHT | wxALIGN_CENTER_VERTICAL, 10);
-  btnSizer->Add(btnFitSize, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 10);
-  btnSizer->Add(btnActualSize, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 10);
+                0, wxRIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND, 5);
+  btnSizer->Add(spnScale, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
+  btnSizer->Add(new wxStaticText(this, wxID_ANY, "%", wxDefaultPosition,
+                                 wxDefaultSize, wxST_NO_AUTORESIZE),
+                wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
+  btnSizer->Add(btnFitSize, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
+  btnSizer->Add(btnActualSize, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
   btnSizer->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition,
                                  wxDefaultSize, wxLI_VERTICAL),
-                0, wxRIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND, 10);
+                0, wxRIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND, 5);
 
   btnNext = new wxButton(this, wxID_ANY, "Next", wxDefaultPosition,
                          wxDefaultSize, wxBU_EXACTFIT);
@@ -51,14 +53,19 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
   btnPrev->Bind(wxEVT_BUTTON, &ImageViewPanel::OnPrevButtonClick, this);
   btnAuto = new wxToggleButton(this, wxID_ANY, "Auto", wxDefaultPosition,
                                wxDefaultSize, wxBU_EXACTFIT);
+  btnAuto->Bind(wxEVT_TOGGLEBUTTON, &ImageViewPanel::OnBtnAutoToggle, this);
+
   spnRefreshTime = new wxSpinCtrl(this, wxID_ANY);
   spnRefreshTime->SetValue(30);
   spnRefreshTime->SetRange(1, 3000);
 
-  btnSizer->Add(btnPrev, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 10);
-  btnSizer->Add(btnNext, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 10);
-  btnSizer->Add(btnAuto, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 10);
-  btnSizer->Add(spnRefreshTime, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 10);
+  btnSizer->Add(btnPrev, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
+  btnSizer->Add(btnNext, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
+  btnSizer->Add(btnAuto, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
+  btnSizer->Add(spnRefreshTime, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL);
+  btnSizer->Add(new wxStaticText(this, wxID_ANY, "s", wxDefaultPosition,
+                                 wxDefaultSize, wxST_NO_AUTORESIZE),
+                0, wxRIGHT | wxALIGN_CENTER_VERTICAL);
 
   outerSizer->Add(btnSizer, 0, wxALL, 10);
   outerSizer->Add(new wxStaticLine(this), 0,
@@ -95,6 +102,8 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
 
   bitmap = new wxStaticBitmap(scrollPanel, wxID_ANY, wxBitmap(image));
   scrollSizer->Add(bitmap);
+
+  Bind(wxEVT_TIMER, &ImageViewPanel::OnTimerNotify, this);
 }
 
 void ImageViewPanel::OnCloseButtonClick(wxCommandEvent &event) {
@@ -136,7 +145,7 @@ void ImageViewPanel::FitImage() {
 
   auto &percentage =
       widthPercent < heightPercent ? widthPercent : heightPercent;
-
+  percentage = percentage > 200 ? 200 : percentage;
   spnScale->SetValue(percentage);
   RefreshImage(percentage);
 }
@@ -157,20 +166,9 @@ void ImageViewPanel::RefreshImage(const int &percentage) {
   Update();
 }
 
-void ImageViewPanel::OnNextButtonClick(wxCommandEvent &event) {
-  entryIter++;
-  if (entryIter == entries.end())
-    entryIter = entries.begin();
-  SetImageEntry(*entryIter);
-}
+void ImageViewPanel::OnNextButtonClick(wxCommandEvent &event) { Advance(1); }
 
-void ImageViewPanel::OnPrevButtonClick(wxCommandEvent &event) {
-  if (entryIter == entries.begin())
-    entryIter = entries.end() - 1;
-  else
-    entryIter--;
-  SetImageEntry(*entryIter);
-}
+void ImageViewPanel::OnPrevButtonClick(wxCommandEvent &event) { Advance(-1); }
 
 void ImageViewPanel::SetImageEntry(Entry *entry) {
   auto notebook = dynamic_cast<wxNotebook *>(GetParent());
@@ -194,3 +192,30 @@ bool ImageViewPanel::Layout() {
     FitImage();
   return false;
 }
+
+void ImageViewPanel::Advance(const int &step) {
+  if (entryIter + step >= entries.end())
+    entryIter = entries.begin();
+  else if (entryIter + step < entries.begin())
+    entryIter = entries.end() - 1;
+  else
+    entryIter = entryIter + step;
+
+  SetImageEntry(*entryIter);
+}
+
+void ImageViewPanel::OnBtnAutoToggle(wxCommandEvent &event) {
+  if (btnAuto->GetValue()) {
+    timer.Start(spnRefreshTime->GetValue() * 1000);
+    spnRefreshTime->Disable();
+    btnPrev->Disable();
+    btnNext->Disable();
+  } else {
+    timer.Stop();
+    spnRefreshTime->Enable();
+    btnPrev->Enable();
+    btnNext->Enable();
+  }
+}
+
+void ImageViewPanel::OnTimerNotify(wxTimerEvent &timer) { Advance(1); }

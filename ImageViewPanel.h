@@ -5,6 +5,7 @@
 #include <wx/spinctrl.h>
 #include <wx/tglbtn.h>
 #include <wx/wx.h>
+#include <wx/timer.h>
 
 #include "Entry.h"
 
@@ -29,12 +30,14 @@ private:
   wxSpinCtrl *spnRefreshTime;
   wxToggleButton *btnFitSize;
   wxButton *btnActualSize;
+  wxTimer timer;
 
   std::vector<Entry *> entries;
   std::vector<Entry *>::const_iterator entryIter;
 
   void OnCloseButtonClick(wxCommandEvent &event);
   void OnBtnFitSizeToggle(wxCommandEvent &event);
+  void OnBtnAutoToggle(wxCommandEvent &event);
   void OnBtnActualSizePressed(wxCommandEvent &event);
   void OnScaleValueChanged(wxSpinEvent &event);
   void OnNextButtonClick(wxCommandEvent &event);
@@ -44,7 +47,10 @@ private:
 
   void FitImage();
   void SetImageEntry(Entry *entry);
+
+  void Advance(const int &step);
   virtual bool Layout() override;
+  void OnTimerNotify(wxTimerEvent &event);
 };
 
 #endif
