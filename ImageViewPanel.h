@@ -38,9 +38,10 @@ private:
   void OnNextButtonClick(wxCommandEvent &event);
   void OnPrevButtonClick(wxCommandEvent &event);
 
-  void ResizeImage(const int &percentage);
+  void RefreshImage(const int &percentage = 100);
 
-  void LoadImage();
+  void FitImage();
+  void SetImageEntry(Entry *entry);
 };
 
 #endif
