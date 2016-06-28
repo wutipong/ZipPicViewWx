@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <wx/notebook.h>
+#include <wx/statline.h>
 
 ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
                                const wxPoint &pos, const wxSize &size,
@@ -25,9 +26,13 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
                       this);
 
   btnSizer->Add(btnClose, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 10);
+  btnSizer->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL),
+                0, wxRIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND, 10);
   btnSizer->Add(spnScale, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 10);
   btnSizer->Add(btnFitSize, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 10);
   btnSizer->Add(btnActualSize, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 10);
+  btnSizer->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxLI_VERTICAL),
+                0, wxRIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND, 10);
 
   btnNext = new wxButton(this, wxID_ANY, "Next");
   btnNext->Bind(wxEVT_BUTTON, &ImageViewPanel::OnNextButtonClick, this);
@@ -44,7 +49,8 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
   btnSizer->Add(spnRefreshTime, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 10);
 
   outerSizer->Add(btnSizer, 0, wxALL, 10);
-
+  outerSizer->Add(new wxStaticLine(this),
+                0, wxRIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND, 10);
   scrollPanel = new wxScrolledWindow(this, wxID_ANY);
   scrollSizer = new wxBoxSizer(wxVERTICAL);
 
