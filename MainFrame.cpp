@@ -241,6 +241,10 @@ void MainFrame::SetEntry(Entry *entry) {
   if (oldEntry) {
     delete oldEntry;
   }
+
+  while (notebook->GetPageCount() > 1) {
+    notebook->DeletePage(1);
+  }
 }
 
 void MainFrame::OnThumbnailLoadUpdated(wxThreadEvent &event) {
