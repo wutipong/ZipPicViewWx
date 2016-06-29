@@ -11,7 +11,8 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
   auto outerSizer = new wxBoxSizer(wxVERTICAL);
   auto btnSizer = new wxBoxSizer(wxHORIZONTAL);
   btnClose = new wxButton(this, wxID_CLOSE, "Close", wxDefaultPosition,
-                          wxDefaultSize, wxBU_EXACTFIT);
+                          wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT);
+  btnClose->SetBitmap(wxICON(IDI_ICON_CLOSE));
   btnClose->Bind(wxEVT_BUTTON, &ImageViewPanel::OnCloseButtonClick, this);
 
   spnScale = new wxSpinCtrl(this, wxID_ANY);
@@ -20,15 +21,18 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
   spnScale->Bind(wxEVT_SPINCTRL, &ImageViewPanel::OnScaleValueChanged, this);
 
   btnFitSize = new wxToggleButton(this, wxID_ANY, "Fit", wxDefaultPosition,
-                                  wxDefaultSize, wxBU_EXACTFIT);
+                                  wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT);
+  btnFitSize->SetBitmap(wxICON(IDI_ICON_FIT));
+
   btnFitSize->Bind(wxEVT_TOGGLEBUTTON, &ImageViewPanel::OnBtnFitSizeToggle,
                    this);
   btnFitSize->SetValue(true);
 
   btnActualSize = new wxButton(this, wxID_ANY, "Actual", wxDefaultPosition,
-                               wxDefaultSize, wxBU_EXACTFIT);
+                               wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT);
   btnActualSize->Bind(wxEVT_BUTTON, &ImageViewPanel::OnBtnActualSizePressed,
                       this);
+  btnActualSize->SetBitmap(wxICON(IDI_ICON_ACTUAL));
   btnActualSize->Disable();
   spnScale->Disable();
   btnSizer->Add(btnClose, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
@@ -46,15 +50,17 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
                 0, wxRIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND, 5);
 
   btnNext = new wxButton(this, wxID_ANY, "Next", wxDefaultPosition,
-                         wxDefaultSize, wxBU_EXACTFIT);
+                         wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT);
   btnNext->Bind(wxEVT_BUTTON, &ImageViewPanel::OnNextButtonClick, this);
+  btnNext->SetBitmap(wxICON(IDI_ICON_NEXT));
   btnPrev = new wxButton(this, wxID_ANY, "Prev", wxDefaultPosition,
-                         wxDefaultSize, wxBU_EXACTFIT);
+                         wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT);
   btnPrev->Bind(wxEVT_BUTTON, &ImageViewPanel::OnPrevButtonClick, this);
+  btnPrev->SetBitmap(wxICON(IDI_ICON_PREV));
   btnAuto = new wxToggleButton(this, wxID_ANY, "Auto", wxDefaultPosition,
-                               wxDefaultSize, wxBU_EXACTFIT);
+                               wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT);
   btnAuto->Bind(wxEVT_TOGGLEBUTTON, &ImageViewPanel::OnBtnAutoToggle, this);
-
+  btnAuto->SetBitmap(wxICON(IDI_ICON_AUTO));
   spnRefreshTime = new wxSpinCtrl(this, wxID_ANY);
   spnRefreshTime->SetValue(30);
   spnRefreshTime->SetRange(1, 3000);

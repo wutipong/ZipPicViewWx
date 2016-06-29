@@ -1,3 +1,10 @@
 #define wxUSE_NO_MANIFEST 0
 
 #include "wx/msw/wx.rc"
+IDI_ICON1               ICON    DISCARDABLE     "res/appicon.ico"
+IDI_ICON_CLOSE          ICON    DISCARDABLE     "res/btn_close.ico"
+IDI_ICON_FIT            ICON    DISCARDABLE     "res/btn_fit.ico"
+IDI_ICON_ACTUAL         ICON    DISCARDABLE     "res/btn_actual.ico"
+IDI_ICON_AUTO           ICON    DISCARDABLE     "res/btn_auto.ico"
+IDI_ICON_NEXT           ICON    DISCARDABLE     "res/btn_next.ico"
+IDI_ICON_PREV           ICON    DISCARDABLE     "res/btn_prev.ico"
