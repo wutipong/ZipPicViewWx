@@ -19,6 +19,7 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   auto toolSizer = new wxBoxSizer(wxHORIZONTAL);
   onTopChk = new wxCheckBox(panel, wxID_ANY, "On Top");
   onTopChk->Bind(wxEVT_CHECKBOX, &MainFrame::OnOnTopChecked, this);
+  onTopChk->SetToolTip("Force the application to stay on top.");
   notebook = new wxNotebook(panel, wxID_ANY);
 
   currentFileCtrl =
@@ -27,8 +28,10 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
 
   dirBrowseBtn = new wxButton(panel, wxID_ANY, "Directory...");
   dirBrowseBtn->Bind(wxEVT_BUTTON, &MainFrame::OnDirBrowsePressed, this);
+  dirBrowseBtn->SetToolTip("Load images from a directory.");
   zipBrowseBtn = new wxButton(panel, wxID_ANY, "Zip...");
   zipBrowseBtn->Bind(wxEVT_BUTTON, &MainFrame::OnZipBrowsePressed, this);
+  zipBrowseBtn->SetToolTip("Load images from a zip file.");
 
   toolSizer->Add(currentFileCtrl, 1, wxEXPAND);
   toolSizer->Add(dirBrowseBtn, 0, wxEXPAND | wxLEFT | wxALIGN_BOTTOM, 5);

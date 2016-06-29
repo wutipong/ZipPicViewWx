@@ -19,9 +19,11 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
   btnClose = new wxButton(this, wxID_CLOSE, "Close", wxDefaultPosition,
                           wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT);
   btnClose->SetBitmap(wxICON(IDI_ICON_CLOSE));
+  btnClose->SetToolTip("Close this tab.");
   btnClose->Bind(wxEVT_BUTTON, &ImageViewPanel::OnCloseButtonClick, this);
 
   spnScale = new wxSpinCtrl(this, wxID_ANY);
+  spnScale->SetToolTip("Set the percentage the image is scaled to.");
   spnScale->SetValue(100);
   spnScale->SetRange(1, 200);
   spnScale->Bind(wxEVT_SPINCTRL, &ImageViewPanel::OnScaleValueChanged, this);
@@ -29,6 +31,7 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
   btnFitSize = new wxToggleButton(this, wxID_ANY, "Fit", wxDefaultPosition,
                                   wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT);
   btnFitSize->SetBitmap(wxICON(IDI_ICON_FIT));
+  btnFitSize->SetToolTip("Fit the image inside the tab.");
 
   btnFitSize->Bind(wxEVT_TOGGLEBUTTON, &ImageViewPanel::OnBtnFitSizeToggle,
                    this);
@@ -39,6 +42,7 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
   btnActualSize->Bind(wxEVT_BUTTON, &ImageViewPanel::OnBtnActualSizePressed,
                       this);
   btnActualSize->SetBitmap(wxICON(IDI_ICON_ACTUAL));
+  btnActualSize->SetToolTip("Scale the image back to the original size.");
   btnActualSize->Disable();
   spnScale->Disable();
   btnSizer->Add(btnClose, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
@@ -59,17 +63,23 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
                          wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT);
   btnNext->Bind(wxEVT_BUTTON, &ImageViewPanel::OnNextButtonClick, this);
   btnNext->SetBitmap(wxICON(IDI_ICON_NEXT));
+  btnNext->SetToolTip("Load the next image from the same directory.");
   btnPrev = new wxButton(this, wxID_ANY, "Prev", wxDefaultPosition,
                          wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT);
   btnPrev->Bind(wxEVT_BUTTON, &ImageViewPanel::OnPrevButtonClick, this);
   btnPrev->SetBitmap(wxICON(IDI_ICON_PREV));
+  btnPrev->SetToolTip("Load the previous image from the same directory.");
   btnAuto = new wxToggleButton(this, wxID_ANY, "Auto", wxDefaultPosition,
                                wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT);
   btnAuto->Bind(wxEVT_TOGGLEBUTTON, &ImageViewPanel::OnBtnAutoToggle, this);
   btnAuto->SetBitmap(wxICON(IDI_ICON_AUTO));
+  btnAuto->SetToolTip("Auto advance to the next image");
+
   spnRefreshTime = new wxSpinCtrl(this, wxID_ANY);
   spnRefreshTime->SetValue(30);
   spnRefreshTime->SetRange(1, 3000);
+  spnRefreshTime->SetToolTip("Set the time interval (seconds) between the "
+                             "current image to the next one.");
 
   btnSizer->Add(btnPrev, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
   btnSizer->Add(btnNext, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
