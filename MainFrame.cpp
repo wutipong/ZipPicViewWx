@@ -35,7 +35,9 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   toolSizer->Add(zipBrowseBtn, 0, wxEXPAND | wxLEFT | wxALIGN_BOTTOM, 5);
   toolSizer->Add(onTopChk, 0, wxEXPAND | wxLEFT | wxALIGN_BOTTOM, 5);
 
-  progress = new wxGauge(panel, wxID_ANY, 100);
+  auto statusBar = CreateStatusBar();
+  statusBar->SetStatusText("Idle");
+  /* progress = new wxGauge(panel, wxID_ANY, 100);
   progressDescText = new wxStaticText(panel, wxID_ANY, "Idle");
   progressDescText->SetMinSize({250, 20});
 
@@ -43,11 +45,11 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   progressSizer->AddStretchSpacer();
   progressSizer->Add(progressDescText, 0, wxEXPAND | wxALL | wxALIGN_RIGHT, 5);
   progressSizer->AddSpacer(5);
-  progressSizer->Add(progress, 0, wxEXPAND | wxALL | wxALIGN_RIGHT, 5);
+  progressSizer->Add(progress, 0, wxEXPAND | wxALL | wxALIGN_RIGHT, 5);*/
 
   outerSizer->Add(toolSizer, 0, wxEXPAND | wxALL, 5);
   outerSizer->Add(notebook, 1, wxEXPAND | wxALL, 5);
-  outerSizer->Add(progressSizer, 0);
+  // outerSizer->Add(progressSizer, 0);
 
   splitter = new wxSplitterWindow(notebook, wxID_ANY);
   splitter->Bind(wxEVT_SPLITTER_DOUBLECLICKED,
@@ -79,6 +81,7 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   SetMinSize({480, 480});
   SetSize({640, 480});
   SetIcons(wxICON(IDI_ICON1));
+  SetWindowStyle(wxRESIZE_BORDER | wxDEFAULT_FRAME_STYLE);
 }
 
 void MainFrame::BuildDirectoryTree() {
@@ -129,7 +132,8 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
             [](Entry *e1, Entry *e2) { return e1->Name() < e2->Name(); });
 
   for (auto entry : loadEntries) {
-    auto button = new wxButton(gridPanel, wxID_ANY);
+    auto button = new wxButton(gridPanel, wxID_ANY, "", wxDefaultPosition,
+                               wxDefaultSize, wxBU_EXACTFIT);
     imgButtons.push_back(button);
     button->Bind(wxEVT_BUTTON, &MainFrame::OnImageButtonClick, this);
 
@@ -146,9 +150,13 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
     grid->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
   }
 
-  progress->SetRange(loadEntries.size());
+  /*progress->SetRange(loadEntries.size());
   progressDescText->SetLabelText(wxString::Format("Loading Thumbnail %i of %i",
-                                                  1, (int)loadEntries.size()));
+                                                  1,
+  (int)loadEntries.size()));*/
+
+  GetStatusBar()->SetStatusText(wxString::Format("Loading Thumbnail %i of %i",
+                                                 1, (int)loadEntries.size()));
 
   if (loadThread) {
     loadThread->Delete(nullptr, wxTHREAD_WAIT_BLOCK);
@@ -251,17 +259,22 @@ void MainFrame::SetEntry(Entry *entry) {
 
 void MainFrame::OnThumbnailLoadUpdated(wxThreadEvent &event) {
   auto data = event.GetPayload<ThumbnailData>();
-  if (data.index > progress->GetRange())
+  if (data.index >= data.total)
     return;
-
+  /*
   progress->SetValue(data.index);
   progressDescText->SetLabelText(wxString::Format("Loading Thumbnail %i of %i",
                                                   data.index + 2, data.total));
+  */
+  GetStatusBar()->SetStatusText(wxString::Format("Loading Thumbnail %i of %i",
+                                                 data.index + 1, data.total));
   imgButtons[data.index]->SetBitmap(data.image);
 }
 
 void MainFrame::OnThumbnailLoadDone(wxThreadEvent &event) {
-  progressDescText->SetLabelText("Idle");
-  progress->SetValue(progress->GetRange());
+  // progressDescText->SetLabelText("Idle");
+  // progress->SetValue(progress->GetRange());
+
+  GetStatusBar()->SetStatusText("Idle");
   loadThread = nullptr;
 }
