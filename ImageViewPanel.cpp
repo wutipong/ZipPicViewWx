@@ -1,5 +1,11 @@
 #include "ImageViewPanel.h"
 
+#include "res/btn_actual.xpm"
+#include "res/btn_auto.xpm"
+#include "res/btn_close.xpm"
+#include "res/btn_fit.xpm"
+#include "res/btn_next.xpm"
+#include "res/btn_prev.xpm"
 #include <algorithm>
 #include <wx/notebook.h>
 #include <wx/statline.h>

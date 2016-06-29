@@ -2,6 +2,7 @@
 #include "FileEntry.h"
 #include "ImageViewPanel.h"
 #include "ZipEntry.h"
+#include "res/appicon.xpm"
 #include <algorithm>
 #include <wx/button.h>
 #include <wx/log.h>
