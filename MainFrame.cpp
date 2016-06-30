@@ -81,8 +81,8 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
        this);
   Bind(wxEVT_COMMAND_THMBTREAD_DONE, &MainFrame::OnThumbnailLoadDone, this);
 
-  SetMinSize({480, 480});
-  SetSize({640, 480});
+  SetMinSize({680, 480});
+  SetSize({680, 480});
   SetIcons(wxICON(IDI_ICON1));
   SetWindowStyle(wxRESIZE_BORDER | wxDEFAULT_FRAME_STYLE);
 }

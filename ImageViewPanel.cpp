@@ -6,9 +6,11 @@
 #include "res/btn_fit.xpm"
 #include "res/btn_next.xpm"
 #include "res/btn_prev.xpm"
+#include "res/btn_save.xpm"
 #include <algorithm>
 #include <wx/notebook.h>
 #include <wx/statline.h>
+#include <wx/wfstream.h>
 
 ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
                                const wxPoint &pos, const wxSize &size,
@@ -61,7 +63,8 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
 
   btnNext = new wxButton(this, wxID_ANY, "Next", wxDefaultPosition,
                          wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT);
-  btnNext->Bind(wxEVT_BUTTON, &ImageViewPanel::OnNextButtonClick, this);
+  btnNext->Bind(wxEVT_BUTTON, [this](wxCommandEvent &event) { Advance(1); },
+                wxID_ANY);
   btnNext->SetBitmap(wxICON(IDI_ICON_NEXT));
   btnNext->SetToolTip("Load the next image from the same directory.");
   btnPrev = new wxButton(this, wxID_ANY, "Prev", wxDefaultPosition,
@@ -88,6 +91,17 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
   btnSizer->Add(new wxStaticText(this, wxID_ANY, "s", wxDefaultPosition,
                                  wxDefaultSize, wxST_NO_AUTORESIZE),
                 0, wxRIGHT | wxALIGN_CENTER_VERTICAL);
+
+  auto btnSave = new wxButton(this, wxID_ANY, "Save As", wxDefaultPosition,
+                              wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT);
+  btnSave->SetBitmap(wxICON(IDI_ICON_SAVE));
+  btnSave->SetToolTip("Save file as");
+  btnSave->Bind(wxEVT_BUTTON, &ImageViewPanel::OnSaveButtonClick, this);
+
+  btnSizer->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition,
+                                 wxDefaultSize, wxLI_VERTICAL),
+                0, wxRIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND, 5);
+  btnSizer->Add(btnSave, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
 
   outerSizer->Add(btnSizer, 0, wxALL, 10);
   outerSizer->Add(new wxStaticLine(this), 0,
@@ -241,3 +255,15 @@ void ImageViewPanel::OnBtnAutoToggle(wxCommandEvent &event) {
 }
 
 void ImageViewPanel::OnTimerNotify(wxTimerEvent &timer) { Advance(1); }
+
+void ImageViewPanel::OnSaveButtonClick(wxCommandEvent &event) {
+  Entry *entry = *entryIter;
+  wxFileDialog dialog(this, "Save As...", wxEmptyString, entry->Name(),
+                      wxFileSelectorDefaultWildcardStr, wxFD_SAVE);
+  if (dialog.ShowModal() != wxID_OK)
+    return;
+
+  wxFileOutputStream output(dialog.GetPath());
+  entry->WriteStream(output);
+  output.Close();
+}

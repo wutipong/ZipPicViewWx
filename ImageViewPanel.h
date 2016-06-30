@@ -42,6 +42,7 @@ private:
   void OnScaleValueChanged(wxSpinEvent &event);
   void OnNextButtonClick(wxCommandEvent &event);
   void OnPrevButtonClick(wxCommandEvent &event);
+  void OnSaveButtonClick(wxCommandEvent &event);
 
   void RefreshImage(const int &percentage = 100);
 
