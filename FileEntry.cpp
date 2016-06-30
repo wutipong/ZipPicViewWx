@@ -71,3 +71,14 @@ FileEntry *FileEntry::AddChildrenFromPath(EntryMap &entryMap,
 }
 
 FileEntry::~FileEntry() { delete mutex; }
+
+void FileEntry::WriteStream(wxOutputStream &output) {
+  mutex->Lock();
+  if (IsDirectory())
+    return;
+
+  wxFileInputStream stream(filename.GetFullPath());
+  output.Write(stream);
+
+  mutex->Unlock();
+}

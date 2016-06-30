@@ -21,6 +21,7 @@ public:
   static FileEntry *Create(const wxFileName &filename);
 
   virtual wxImage LoadImage() override;
+  virtual void WriteStream(wxOutputStream &) override;
   virtual bool IsRoot() const override { return isRoot; }
 
 private:

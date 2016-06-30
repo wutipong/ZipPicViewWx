@@ -11,6 +11,7 @@
 #include <wx/image.h>
 #include <wx/string.h>
 #include <wx/treebase.h>
+#include <wx/stream.h>
 
 class Entry;
 typedef std::vector<Entry *>::const_iterator EntryIter;
@@ -21,6 +22,7 @@ public:
   bool IsDirectory() { return dir; }
 
   virtual wxImage LoadImage() = 0;
+  virtual void WriteStream(wxOutputStream &) = 0;
 
   EntryIter FirstChild() { return children.begin(); }
   EntryIter EndChild() { return children.end(); }

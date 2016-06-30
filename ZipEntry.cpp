@@ -117,3 +117,23 @@ ZipEntry::AddChildrenFromPath(zip_t *zipFile, wxMutex *mutex,
 
   return child;
 }
+
+void ZipEntry::WriteStream(wxOutputStream &output) {
+  mutex->Lock();
+  if (IsDirectory())
+    return;
+
+  struct zip_stat stat;
+  zip_stat(zipFile, innerPath, 0, &stat);
+
+  auto file = zip_fopen(zipFile, innerPath, 0);
+  auto size = stat.size;
+  auto buffer = new unsigned char[size];
+  auto read = zip_fread(file, buffer, size);
+
+  wxMemoryInputStream stream(buffer, size);
+  output.Write(stream);
+
+  delete[] buffer;
+  mutex->Unlock();
+}

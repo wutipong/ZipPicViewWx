@@ -17,6 +17,7 @@ public:
   static ZipEntry *Create(const wxString &path);
 
   virtual wxImage LoadImage() override;
+  virtual void WriteStream(wxOutputStream &) override;
 
   virtual ~ZipEntry();
   virtual bool IsRoot() const override { return innerPath.IsEmpty(); }
