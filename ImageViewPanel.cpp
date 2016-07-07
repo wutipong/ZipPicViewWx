@@ -47,7 +47,8 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
   btnActualSize->SetToolTip("Scale the image back to the original size.");
   btnActualSize->Disable();
   spnScale->Disable();
-  btnSizer->Add(btnClose, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
+  btnSizer->Add(btnClose, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL);
+  btnSizer->AddSpacer(5);
   btnSizer->Add(new wxStaticLine(this, wxID_ANY, wxDefaultPosition,
                                  wxDefaultSize, wxLI_VERTICAL),
                 0, wxRIGHT | wxALIGN_CENTER_VERTICAL | wxEXPAND, 5);
