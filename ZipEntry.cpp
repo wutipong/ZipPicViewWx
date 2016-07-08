@@ -2,11 +2,11 @@
 // Created by noom on 10/29/15.
 //
 
-#include <wx/mstream.h>
-#include <wx/file.h>
 #include <algorithm>
-#include <map>
 #include <iostream>
+#include <map>
+#include <wx/file.h>
+#include <wx/mstream.h>
 
 #include "ZipEntry.h"
 
@@ -87,6 +87,7 @@ ZipEntry *ZipEntry::Create(const wxString &path) {
     AddChildrenFromPath(zipFile, mutex, entryMap, path);
   }
 
+  root->SortChildren();
   return root;
 }
 

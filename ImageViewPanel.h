@@ -1,11 +1,12 @@
 #ifndef __IMAGE_VIEW_PANEL__
 #define __IMAGE_VIEW_PANEL__
 
+#include <random>
 #include <wx/button.h>
 #include <wx/spinctrl.h>
 #include <wx/tglbtn.h>
-#include <wx/wx.h>
 #include <wx/timer.h>
+#include <wx/wx.h>
 
 #include "Entry.h"
 
@@ -27,6 +28,7 @@ private:
   wxButton *btnNext;
   wxButton *btnPrev;
   wxToggleButton *btnAuto;
+  wxToggleButton *btnRandom;
   wxSpinCtrl *spnRefreshTime;
   wxToggleButton *btnFitSize;
   wxButton *btnActualSize;
@@ -34,6 +36,10 @@ private:
 
   std::vector<Entry *> entries;
   std::vector<Entry *>::const_iterator entryIter;
+
+  std::random_device r;
+  std::default_random_engine randomEngine;
+  std::uniform_int_distribution<int> random;
 
   void OnCloseButtonClick(wxCommandEvent &event);
   void OnBtnFitSizeToggle(wxCommandEvent &event);
