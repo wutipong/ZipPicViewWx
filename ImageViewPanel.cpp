@@ -141,9 +141,6 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
     entries.push_back(childEntry);
   }
 
-  std::sort(entries.begin(), entries.end(),
-            [](Entry *e1, Entry *e2) { return e1->Name() < e2->Name(); });
-
   entryIter = std::find(entries.begin(), entries.end(), entry);
 
   image = (*entryIter)->LoadImage();
@@ -155,6 +152,8 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
 
   if (entries.size() > 0)
     random = std::uniform_int_distribution<int>(1, entries.size());
+  else
+    random = std::uniform_int_distribution<int>(0, 1);
 }
 
 void ImageViewPanel::OnCloseButtonClick(wxCommandEvent &event) {

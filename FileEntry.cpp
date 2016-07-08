@@ -16,6 +16,7 @@ FileEntry *FileEntry::Create(const wxFileName &filename) {
     AddChildrenFromPath(entryMap, paths.Item(i));
   }
 
+  root->SortChildren();
   return root;
 }
 

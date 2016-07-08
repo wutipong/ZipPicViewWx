@@ -5,13 +5,14 @@
 #ifndef ZIPPICVIEW_ENTRY_H
 #define ZIPPICVIEW_ENTRY_H
 
+#include <algorithm>
 #include <iostream>
 #include <vector>
 
 #include <wx/image.h>
+#include <wx/stream.h>
 #include <wx/string.h>
 #include <wx/treebase.h>
-#include <wx/stream.h>
 
 class Entry;
 typedef std::vector<Entry *>::const_iterator EntryIter;
@@ -67,6 +68,21 @@ protected:
   }
   void SetName(const wxString &_name) { name = _name; }
   void SetIsDirectory(const bool &_dir) { dir = _dir; }
+
+  void SortChildren() {
+    std::sort(children.begin(), children.end(), [](Entry *e1, Entry *e2) {
+      if (e1->IsDirectory() == e2->IsDirectory()) {
+        return e1->Name() < e2->Name();
+      } else if (e1->IsDirectory()) {
+        return true;
+      } else {
+        return false;
+      }
+    });
+
+    std::for_each(children.begin(), children.end(),
+                  [](Entry *e) { e->SortChildren(); });
+  }
 };
 
 class EntryItemData : public wxTreeItemData {

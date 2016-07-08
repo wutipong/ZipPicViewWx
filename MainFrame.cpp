@@ -131,9 +131,6 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
     loadEntries.push_back(childEntry);
   }
 
-  std::sort(loadEntries.begin(), loadEntries.end(),
-            [](Entry *e1, Entry *e2) { return e1->Name() < e2->Name(); });
-
   for (auto entry : loadEntries) {
     auto button = new wxButton(gridPanel, wxID_ANY, "", wxDefaultPosition,
                                wxDefaultSize, wxBU_EXACTFIT);
