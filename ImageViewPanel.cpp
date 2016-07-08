@@ -6,8 +6,11 @@
 #include "res/btn_fit.xpm"
 #include "res/btn_next.xpm"
 #include "res/btn_prev.xpm"
+#include "res/btn_random.xpm"
 #include "res/btn_save.xpm"
 #include <algorithm>
+#include <cmath>
+#include <ctime>
 #include <wx/notebook.h>
 #include <wx/statline.h>
 #include <wx/wfstream.h>
@@ -72,11 +75,18 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
   btnPrev->Bind(wxEVT_BUTTON, &ImageViewPanel::OnPrevButtonClick, this);
   btnPrev->SetBitmap(wxICON(IDI_ICON_PREV));
   btnPrev->SetToolTip("Load the previous image from the same directory.");
+
   btnAuto = new wxToggleButton(this, wxID_ANY, "Auto", wxDefaultPosition,
                                wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT);
   btnAuto->Bind(wxEVT_TOGGLEBUTTON, &ImageViewPanel::OnBtnAutoToggle, this);
   btnAuto->SetBitmap(wxICON(IDI_ICON_AUTO));
   btnAuto->SetToolTip("Auto advance to the next image");
+
+  btnRandom = new wxToggleButton(this, wxID_ANY, "Auto", wxDefaultPosition,
+                                 wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT);
+  btnRandom->Bind(wxEVT_TOGGLEBUTTON, &ImageViewPanel::OnBtnAutoToggle, this);
+  btnRandom->SetBitmap(wxICON(IDI_ICON_RANDOM));
+  btnRandom->SetToolTip("Advance image randomly");
 
   spnRefreshTime = new wxSpinCtrl(this, wxID_ANY);
   spnRefreshTime->SetValue(30);
@@ -88,9 +98,10 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
   btnSizer->Add(btnNext, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
   btnSizer->Add(btnAuto, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
   btnSizer->Add(spnRefreshTime, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL);
+  btnSizer->Add(btnRandom, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
   btnSizer->Add(new wxStaticText(this, wxID_ANY, "s", wxDefaultPosition,
                                  wxDefaultSize, wxST_NO_AUTORESIZE),
-                0, wxRIGHT | wxALIGN_CENTER_VERTICAL);
+                0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
 
   auto btnSave = new wxButton(this, wxID_ANY, "Save As", wxDefaultPosition,
                               wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT);
@@ -140,6 +151,8 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
   scrollSizer->Add(bitmap);
 
   Bind(wxEVT_TIMER, &ImageViewPanel::OnTimerNotify, this);
+
+  srand(time(NULL));
 }
 
 void ImageViewPanel::OnCloseButtonClick(wxCommandEvent &event) {
@@ -230,12 +243,18 @@ bool ImageViewPanel::Layout() {
 }
 
 void ImageViewPanel::Advance(const int &step) {
-  if (entryIter + step >= entries.end())
-    entryIter = entries.begin();
-  else if (entryIter + step < entries.begin())
-    entryIter = entries.end() - 1;
-  else
-    entryIter = entryIter + step;
+  bool isForward = step < 0;
+  for (int i = 0; i < std::abs(step); i++) {
+    if (isForward) {
+      entryIter++;
+      if (entryIter == entries.end())
+        entryIter = entries.begin();
+    } else {
+      entryIter--;
+      if (entryIter < entries.begin())
+        entryIter = entries.end() - 1;
+    }
+  }
 
   SetImageEntry(*entryIter);
 }
@@ -243,18 +262,22 @@ void ImageViewPanel::Advance(const int &step) {
 void ImageViewPanel::OnBtnAutoToggle(wxCommandEvent &event) {
   if (btnAuto->GetValue()) {
     timer.Start(spnRefreshTime->GetValue() * 1000);
+    btnRandom->Disable();
     spnRefreshTime->Disable();
     btnPrev->Disable();
     btnNext->Disable();
   } else {
     timer.Stop();
+    btnRandom->Enable();
     spnRefreshTime->Enable();
     btnPrev->Enable();
     btnNext->Enable();
   }
 }
 
-void ImageViewPanel::OnTimerNotify(wxTimerEvent &timer) { Advance(1); }
+void ImageViewPanel::OnTimerNotify(wxTimerEvent &timer) {
+  Advance(btnRandom->GetValue() ? rand() * entries.size() : 1);
+}
 
 void ImageViewPanel::OnSaveButtonClick(wxCommandEvent &event) {
   Entry *entry = *entryIter;

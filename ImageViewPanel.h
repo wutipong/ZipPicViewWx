@@ -4,8 +4,8 @@
 #include <wx/button.h>
 #include <wx/spinctrl.h>
 #include <wx/tglbtn.h>
-#include <wx/wx.h>
 #include <wx/timer.h>
+#include <wx/wx.h>
 
 #include "Entry.h"
 
@@ -27,6 +27,7 @@ private:
   wxButton *btnNext;
   wxButton *btnPrev;
   wxToggleButton *btnAuto;
+  wxToggleButton *btnRandom;
   wxSpinCtrl *spnRefreshTime;
   wxToggleButton *btnFitSize;
   wxButton *btnActualSize;
