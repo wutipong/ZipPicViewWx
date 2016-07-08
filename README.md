@@ -1,10 +1,12 @@
 # ZipPicViewWx
 
 ![Imgur](http://i.imgur.com/4DRWcjM.png)
+![Imgur](http://i.imgur.com/tQ2UIEC.png)
 
 ZipPicViewWx is an in-zip-archive image viewer. It is written in C++ and runs on Linux and Windows (OSX isn't tested yet). It has only a basic feature like image listing, view with zoom-in/out (up-to 200%), and does not aim to replace your day-to-day image viewer.
 
 ![Imgur](http://i.imgur.com/p3i5G5w.png)
+![Imgur](http://i.imgur.com/Xdjv6R0.png)
 
 ZipPicViewWx has been tested on Windows 10 and Arch Linux.
 
