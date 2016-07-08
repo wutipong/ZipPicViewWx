@@ -81,8 +81,8 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
        this);
   Bind(wxEVT_COMMAND_THMBTREAD_DONE, &MainFrame::OnThumbnailLoadDone, this);
 
-  SetMinSize({680, 480});
-  SetSize({680, 480});
+  SetMinSize({700, 480});
+  SetSize({700, 480});
   SetIcons(wxICON(IDI_ICON1));
   SetWindowStyle(wxRESIZE_BORDER | wxDEFAULT_FRAME_STYLE);
 }
@@ -112,6 +112,12 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
       dynamic_cast<EntryItemData *>(dirTree->GetItemData(treeItemId))->Get();
 
   auto gridPanel = dynamic_cast<wxScrolledWindow *>(splitter->GetWindow2());
+
+  if (loadThread) {
+    loadThread->Delete(nullptr, wxTHREAD_WAIT_BLOCK);
+    loadThread = nullptr;
+  }
+
   gridPanel->Show(false);
   auto grid = gridPanel->GetSizer();
   grid->Clear(true);
@@ -157,11 +163,6 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
 
   GetStatusBar()->SetStatusText(wxString::Format("Loading Thumbnail %i of %i",
                                                  1, (int)loadEntries.size()));
-
-  if (loadThread) {
-    loadThread->Delete(nullptr, wxTHREAD_WAIT_BLOCK);
-    loadThread = nullptr;
-  }
 
   loadThread = new ThumbnailLoadThread(this, loadEntries);
   loadThread->Run();
@@ -268,7 +269,8 @@ void MainFrame::OnThumbnailLoadUpdated(wxThreadEvent &event) {
   */
   GetStatusBar()->SetStatusText(wxString::Format("Loading Thumbnail %i of %i",
                                                  data.index + 1, data.total));
-  imgButtons[data.index]->SetBitmap(data.image);
+  if (data.index < imgButtons.size())
+    imgButtons[data.index]->SetBitmap(data.image);
 }
 
 void MainFrame::OnThumbnailLoadDone(wxThreadEvent &event) {
