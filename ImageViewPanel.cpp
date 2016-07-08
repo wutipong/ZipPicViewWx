@@ -18,7 +18,8 @@
 ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
                                const wxPoint &pos, const wxSize &size,
                                long style, const wxString &name)
-    : wxPanel(parent, id, pos, size, style, name), timer(this) {
+    : wxPanel(parent, id, pos, size, style, name), timer(this),
+      randomEngine(r()) {
   auto outerSizer = new wxBoxSizer(wxVERTICAL);
   auto btnSizer = new wxBoxSizer(wxHORIZONTAL);
   btnClose = new wxButton(this, wxID_CLOSE, "Close", wxDefaultPosition,
@@ -98,10 +99,10 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
   btnSizer->Add(btnNext, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
   btnSizer->Add(btnAuto, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
   btnSizer->Add(spnRefreshTime, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL);
-  btnSizer->Add(btnRandom, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
   btnSizer->Add(new wxStaticText(this, wxID_ANY, "s", wxDefaultPosition,
                                  wxDefaultSize, wxST_NO_AUTORESIZE),
                 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
+  btnSizer->Add(btnRandom, 0, wxRIGHT | wxALIGN_CENTER_VERTICAL, 5);
 
   auto btnSave = new wxButton(this, wxID_ANY, "Save As", wxDefaultPosition,
                               wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT);
@@ -152,7 +153,8 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
 
   Bind(wxEVT_TIMER, &ImageViewPanel::OnTimerNotify, this);
 
-  srand(time(NULL));
+  if (entries.size() > 0)
+    random = std::uniform_int_distribution<int>(1, entries.size());
 }
 
 void ImageViewPanel::OnCloseButtonClick(wxCommandEvent &event) {
@@ -243,7 +245,9 @@ bool ImageViewPanel::Layout() {
 }
 
 void ImageViewPanel::Advance(const int &step) {
-  bool isForward = step < 0;
+  if (step == 0)
+    return;
+  bool isForward = step >= 0;
   for (int i = 0; i < std::abs(step); i++) {
     if (isForward) {
       entryIter++;
@@ -276,7 +280,7 @@ void ImageViewPanel::OnBtnAutoToggle(wxCommandEvent &event) {
 }
 
 void ImageViewPanel::OnTimerNotify(wxTimerEvent &timer) {
-  Advance(btnRandom->GetValue() ? rand() * entries.size() : 1);
+  Advance(btnRandom->GetValue() ? random(randomEngine) : 1);
 }
 
 void ImageViewPanel::OnSaveButtonClick(wxCommandEvent &event) {
