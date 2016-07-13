@@ -1,5 +1,5 @@
 /* XPM */
-static auto IDI_ICON1_xpm = {
+static char* IDI_ICON1_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "32 32 121 2 ",
 "   c #3F3500",
