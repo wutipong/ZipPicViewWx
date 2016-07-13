@@ -48,6 +48,7 @@ wxImage ZipEntry::LoadImage() {
   wxImage output(stream);
 
   delete[] buffer;
+  zip_fclose(file);
   mutex->Unlock();
   return output;
 }
@@ -136,5 +137,6 @@ void ZipEntry::WriteStream(wxOutputStream &output) {
   output.Write(stream);
 
   delete[] buffer;
+  zip_fclose(file);
   mutex->Unlock();
 }
