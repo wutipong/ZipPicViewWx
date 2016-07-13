@@ -1,5 +1,5 @@
 /* XPM */
-static char * IDI_ICON_CLOSE_xpm[] = {
+static auto IDI_ICON_CLOSE_xpm = {
 "32 32 190 2",
 "  	c None",
 ". 	c #444444",

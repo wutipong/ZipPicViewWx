@@ -1,5 +1,5 @@
 /* XPM */
-static char *IDI_ICON_FIT_xpm[] = {
+static auto IDI_ICON_FIT_xpm = {
 /* columns rows colors chars-per-pixel */
 "32 32 2 1 ",
 "  c #444444",
