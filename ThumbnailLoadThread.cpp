@@ -5,9 +5,11 @@
 
 wxThread::ExitCode ThumbnailLoadThread::Entry() {
   for (auto i = 0; i < entries.size(); ++i) {
-    if (TestDestroy())
+    if (TestDestroy()) {
       break;
+    }
 
+    mutex.Lock();
     auto entry = entries[i];
     auto image = entry->LoadImage();
 
@@ -24,8 +26,8 @@ wxThread::ExitCode ThumbnailLoadThread::Entry() {
     data.image = thumbnailImage;
     data.total = entries.size();
     event->SetPayload(data);
-
     wxQueueEvent(m_pHandler, event);
+    mutex.Unlock();
   }
 
   wxQueueEvent(m_pHandler, new wxThreadEvent(wxEVT_COMMAND_THMBTREAD_DONE));

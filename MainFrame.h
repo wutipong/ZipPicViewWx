@@ -29,6 +29,7 @@ private:
   wxButton *zipBrowseBtn;
   wxGauge *progress;
   wxStaticText *progressDescText;
+    wxMutex mutex;
 
   ThumbnailLoadThread *loadThread;
   std::vector<wxButton *> imgButtons;

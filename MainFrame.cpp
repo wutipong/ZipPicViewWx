@@ -106,6 +106,7 @@ void MainFrame::AddTreeItemsFromEntry(const wxTreeItemId &itemId,
 }
 
 void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
+  mutex.Lock();
   auto treeItemId = event.GetItem();
   auto rootId = dirTree->GetRootItem();
   auto currentFileEntry =
@@ -113,8 +114,10 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
 
   auto gridPanel = dynamic_cast<wxScrolledWindow *>(splitter->GetWindow2());
 
-  if (loadThread) {
+  if (loadThread && loadThread->IsAlive()) {
     loadThread->Delete(nullptr, wxTHREAD_WAIT_BLOCK);
+    while(loadThread->IsRunning()) wxSleep(10);
+
     loadThread = nullptr;
   }
 
@@ -164,15 +167,17 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
   GetStatusBar()->SetStatusText(wxString::Format("Loading Thumbnail %i of %i",
                                                  1, (int)loadEntries.size()));
 
-  loadThread = new ThumbnailLoadThread(this, loadEntries);
-  loadThread->Run();
-
   grid->FitInside(gridPanel);
   gridPanel->Show(true);
   gridPanel->Scroll(0, 0);
 
   gridPanel->Refresh();
   gridPanel->Update();
+
+  loadThread = new ThumbnailLoadThread(this, loadEntries, mutex);
+  loadThread->Run();
+
+  mutex.Unlock();
 }
 
 void MainFrame::OnImageButtonClick(wxCommandEvent &event) {

@@ -13,8 +13,8 @@ class MainFrame;
 
 class ThumbnailLoadThread : public wxThread {
 public:
-  ThumbnailLoadThread(MainFrame *handler, const std::vector<::Entry *> &entries)
-      : wxThread(wxTHREAD_DETACHED) {
+  ThumbnailLoadThread(MainFrame *handler, const std::vector<::Entry *> &entries, wxMutex& mutex)
+      : wxThread(wxTHREAD_DETACHED), mutex(mutex) {
     m_pHandler = handler;
     ThumbnailLoadThread::entries = entries;
   };
@@ -23,11 +23,12 @@ private:
   virtual wxThread::ExitCode Entry() override;
   MainFrame *m_pHandler;
   std::vector<::Entry *> entries;
+    wxMutex& mutex;
 };
 
 struct ThumbnailData {
-  int index;
-  int total;
+  size_t index;
+  size_t total;
   wxImage image;
 };
 
