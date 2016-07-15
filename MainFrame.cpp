@@ -88,8 +88,9 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
 }
 
 void MainFrame::BuildDirectoryTree() {
-  auto root = dirTree->AddRoot(entry->Name(), -1, -1, new EntryItemData(entry));
-  AddTreeItemsFromEntry(root, entry);
+  auto root = dirTree->AddRoot(currentEntry->Name(), -1, -1,
+                               new EntryItemData(currentEntry.get()));
+  AddTreeItemsFromEntry(root, currentEntry.get());
 }
 
 void MainFrame::AddTreeItemsFromEntry(const wxTreeItemId &itemId,
@@ -116,8 +117,6 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
 
   if (loadThread && loadThread->IsAlive()) {
     loadThread->Delete(nullptr, wxTHREAD_WAIT_BLOCK);
-    while(loadThread->IsRunning()) wxSleep(10);
-
     loadThread = nullptr;
   }
 
@@ -174,7 +173,7 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
   gridPanel->Refresh();
   gridPanel->Update();
 
-  loadThread = new ThumbnailLoadThread(this, loadEntries, mutex);
+  loadThread = new ThumbnailLoadThread(this, loadEntries, currentEntry, mutex);
   loadThread->Run();
 
   mutex.Unlock();
@@ -223,7 +222,7 @@ void MainFrame::OnDirBrowsePressed(wxCommandEvent &event) {
 
   wxFileName filename = wxFileName::DirName(dlg.GetPath());
   auto entry = FileEntry::Create(filename);
-  SetEntry(entry);
+  SetEntry(std::shared_ptr<Entry>(entry));
   currentFileCtrl->SetValue(filename.GetFullPath());
 }
 
@@ -238,13 +237,12 @@ void MainFrame::OnZipBrowsePressed(wxCommandEvent &event) {
   wxFileName filename(path);
 
   auto entry = ZipEntry::Create(path);
-  SetEntry(entry);
+  SetEntry(std::shared_ptr<Entry>(entry));
   currentFileCtrl->SetValue(filename.GetFullPath());
 }
 
-void MainFrame::SetEntry(Entry *entry) {
-  auto oldEntry = MainFrame::entry;
-  MainFrame::entry = entry;
+void MainFrame::SetEntry(std::shared_ptr<Entry> entry) {
+  MainFrame::currentEntry = entry;
 
   dirTree->DeleteAllItems();
 
@@ -254,10 +252,6 @@ void MainFrame::SetEntry(Entry *entry) {
   dirTree->UnselectAll();
   dirTree->SelectItem(dirTree->GetRootItem());
 
-  if (oldEntry) {
-    delete oldEntry;
-  }
-
   while (notebook->GetPageCount() > 1) {
     notebook->DeletePage(1);
   }
@@ -265,8 +259,13 @@ void MainFrame::SetEntry(Entry *entry) {
 
 void MainFrame::OnThumbnailLoadUpdated(wxThreadEvent &event) {
   auto data = event.GetPayload<ThumbnailData>();
+
   if (data.index >= data.total)
     return;
+
+  if (data.id != loadThread->GetId())
+    return;
+
   /*
   progress->SetValue(data.index);
   progressDescText->SetLabelText(wxString::Format("Loading Thumbnail %i of %i",
@@ -281,6 +280,9 @@ void MainFrame::OnThumbnailLoadUpdated(wxThreadEvent &event) {
 void MainFrame::OnThumbnailLoadDone(wxThreadEvent &event) {
   // progressDescText->SetLabelText("Idle");
   // progress->SetValue(progress->GetRange());
+
+  if (event.GetInt() != loadThread->GetId())
+    return;
 
   GetStatusBar()->SetStatusText("Idle");
   loadThread = nullptr;

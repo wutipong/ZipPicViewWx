@@ -4,8 +4,11 @@
 #include <wx/log.h>
 
 wxThread::ExitCode ThumbnailLoadThread::Entry() {
+  bool cancelled = false;
   for (auto i = 0; i < entries.size(); ++i) {
+
     if (TestDestroy()) {
+      cancelled = true;
       break;
     }
 
@@ -22,6 +25,7 @@ wxThread::ExitCode ThumbnailLoadThread::Entry() {
     auto event = new wxThreadEvent(wxEVT_COMMAND_THMBTREAD_UPDATE);
 
     ThumbnailData data;
+    data.id = GetId();
     data.index = i;
     data.image = thumbnailImage;
     data.total = entries.size();
@@ -30,8 +34,10 @@ wxThread::ExitCode ThumbnailLoadThread::Entry() {
     mutex.Unlock();
   }
 
-  wxQueueEvent(m_pHandler, new wxThreadEvent(wxEVT_COMMAND_THMBTREAD_DONE));
-  return (wxThread::ExitCode)0;
+  auto event = new wxThreadEvent(wxEVT_COMMAND_THMBTREAD_DONE);
+  event->SetInt(GetId());
+  wxQueueEvent(m_pHandler, event);
+  return (wxThread::ExitCode) new bool(cancelled);
 }
 
 wxDEFINE_EVENT(wxEVT_COMMAND_THMBTREAD_UPDATE, wxThreadEvent);

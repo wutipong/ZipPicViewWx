@@ -1,18 +1,19 @@
 #ifndef __MAIN_FRAME_H__
 #define __MAIN_FRAME_H__
 
-#include <wx/wx.h>
 #include <wx/filepicker.h>
+#include <wx/gauge.h>
 #include <wx/notebook.h>
-#include <wx/treectrl.h>
 #include <wx/progdlg.h>
 #include <wx/splitter.h>
-#include <wx/gauge.h>
+#include <wx/treectrl.h>
+#include <wx/wx.h>
 
-#include <vector>
-#include <map>
 #include "Entry.h"
 #include "ThumbnailLoadThread.h"
+#include <map>
+#include <memory>
+#include <vector>
 
 class MainFrame : public wxFrame {
 public:
@@ -29,7 +30,7 @@ private:
   wxButton *zipBrowseBtn;
   wxGauge *progress;
   wxStaticText *progressDescText;
-    wxMutex mutex;
+  wxMutex mutex;
 
   ThumbnailLoadThread *loadThread;
   std::vector<wxButton *> imgButtons;
@@ -46,8 +47,9 @@ private:
   void BuildDirectoryTree();
   void AddTreeItemsFromEntry(const wxTreeItemId &itemId, Entry *entry);
 
-  void SetEntry(Entry *entry);
-  Entry *entry;
+  void SetEntry(std::shared_ptr<Entry> entry);
+
+  std::shared_ptr<Entry> currentEntry;
 };
 
 #endif
