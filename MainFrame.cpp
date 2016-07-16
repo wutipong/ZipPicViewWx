@@ -115,7 +115,7 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
 
   auto gridPanel = dynamic_cast<wxScrolledWindow *>(splitter->GetWindow2());
 
-  if (loadThread && loadThread->IsAlive()) {
+  if (loadThread) {
     loadThread->Delete(nullptr, wxTHREAD_WAIT_BLOCK);
     loadThread = nullptr;
   }
@@ -175,6 +175,7 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
 
   loadThread = new ThumbnailLoadThread(this, loadEntries, currentEntry, mutex);
   loadThread->Run();
+  threadId = loadThread->GetId();
 
   mutex.Unlock();
 }
@@ -263,7 +264,7 @@ void MainFrame::OnThumbnailLoadUpdated(wxThreadEvent &event) {
   if (data.index >= data.total)
     return;
 
-  if (data.id != loadThread->GetId())
+  if (data.id != threadId)
     return;
 
   /*
@@ -281,7 +282,7 @@ void MainFrame::OnThumbnailLoadDone(wxThreadEvent &event) {
   // progressDescText->SetLabelText("Idle");
   // progress->SetValue(progress->GetRange());
 
-  if (event.GetInt() != loadThread->GetId())
+  if (event.GetInt() != threadId)
     return;
 
   GetStatusBar()->SetStatusText("Idle");

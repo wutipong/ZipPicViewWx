@@ -32,6 +32,7 @@ private:
   wxStaticText *progressDescText;
   wxMutex mutex;
 
+  wxThreadIdType threadId;
   ThumbnailLoadThread *loadThread;
   std::vector<wxButton *> imgButtons;
 

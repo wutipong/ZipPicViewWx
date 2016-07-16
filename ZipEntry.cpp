@@ -33,7 +33,7 @@ ZipEntry::ZipEntry(zip_t *zipFile, wxMutex *mutex, const wxString &innerPath)
 
 wxImage ZipEntry::LoadImage() {
   mutex->Lock();
-  if (IsDirectory())
+  if (IsDirectory() || !zipFile)
     return wxImage();
 
   struct zip_stat stat;
@@ -55,7 +55,10 @@ wxImage ZipEntry::LoadImage() {
 
 ZipEntry::~ZipEntry() {
   if (IsRoot()) {
+    mutex->Lock();
     zip_close(zipFile);
+    zipFile = nullptr;
+    mutex->Unlock();
     delete mutex;
   }
 }
@@ -122,7 +125,7 @@ ZipEntry::AddChildrenFromPath(zip_t *zipFile, wxMutex *mutex,
 
 void ZipEntry::WriteStream(wxOutputStream &output) {
   mutex->Lock();
-  if (IsDirectory())
+  if (IsDirectory() || !zipFile)
     return;
 
   struct zip_stat stat;
