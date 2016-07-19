@@ -1,4 +1,5 @@
 #include "MainFrame.h"
+#include "ArchiveExtractor.h"
 #include "FileEntry.h"
 #include "ImageViewPanel.h"
 #include "ZipEntry.h"
@@ -236,7 +237,7 @@ void MainFrame::OnZipBrowsePressed(wxCommandEvent &event) {
 
   auto path = dialog.GetPath();
   wxFileName filename(path);
-  LoadEntryFromFile<ZipEntry>(filename);
+  LoadEntryFromFile<ArchiveExtractor>(filename);
 }
 
 template <class T>
