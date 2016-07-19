@@ -222,8 +222,7 @@ void MainFrame::OnDirBrowsePressed(wxCommandEvent &event) {
                   wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
   if (dlg.ShowModal() == wxID_CANCEL)
     return;
-
-  wxProgressDialog progress("Loading", "Now Loading", 4, this);
+  
   wxFileName filename = wxFileName::DirName(dlg.GetPath());
   LoadEntryFromFile<FileEntry>(filename);
 }
