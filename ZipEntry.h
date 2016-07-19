@@ -5,6 +5,7 @@
 #ifndef ZIPPICVIEW_ZIPENTRY_H
 #define ZIPPICVIEW_ZIPENTRY_H
 
+#include <wx/filename.h>
 #include <wx/thread.h>
 #include <zip.h>
 
@@ -14,7 +15,7 @@ public:
   ZipEntry() = delete;
   ZipEntry(const ZipEntry &) = delete;
 
-  static ZipEntry *Create(const wxString &path);
+  static ZipEntry *Create(const wxFileName &filename);
 
   virtual wxImage LoadImage() override;
   virtual void WriteStream(wxOutputStream &) override;

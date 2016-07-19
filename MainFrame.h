@@ -48,6 +48,7 @@ private:
   void AddTreeItemsFromEntry(const wxTreeItemId &itemId, Entry *entry);
 
   void SetEntry(std::shared_ptr<Entry> entry);
+  template <class T> void LoadEntryFromFile(const wxFileName &filename);
 
   std::shared_ptr<Entry> currentEntry;
 };

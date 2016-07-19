@@ -11,7 +11,6 @@
 enum MainFrameIds { ID_DIRECTORY_TREE = 1, ID_IMAGE_BUTTON };
 
 MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
-
   auto panel = new wxPanel(this);
 
   auto outerSizer = new wxBoxSizer(wxVERTICAL);
@@ -178,15 +177,20 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
 }
 
 void MainFrame::OnImageButtonClick(wxCommandEvent &event) {
+  wxProgressDialog progress("Loading", "Now Loading", 4, this);
   auto button = dynamic_cast<wxButton *>(event.GetEventObject());
   auto clientData =
       dynamic_cast<wxStringClientData *>(button->GetClientObject());
 
   auto page = notebook->GetPageCount();
+  progress.Update(1);
   auto childEntry =
       dynamic_cast<EntryItemData *>(button->GetClientObject())->Get();
+  progress.Update(2);
   auto bitmapCtl = new ImageViewPanel(notebook, childEntry);
+  progress.Update(3);
   notebook->AddPage(bitmapCtl, childEntry->Name());
+  progress.Update(4);
   notebook->SetSelection(page);
 }
 
@@ -218,10 +222,9 @@ void MainFrame::OnDirBrowsePressed(wxCommandEvent &event) {
   if (dlg.ShowModal() == wxID_CANCEL)
     return;
 
+  wxProgressDialog progress("Loading", "Now Loading", 4, this);
   wxFileName filename = wxFileName::DirName(dlg.GetPath());
-  auto entry = FileEntry::Create(filename);
-  SetEntry(std::shared_ptr<Entry>(entry));
-  currentFileCtrl->SetValue(filename.GetFullPath());
+  LoadEntryFromFile<FileEntry>(filename);
 }
 
 void MainFrame::OnZipBrowsePressed(wxCommandEvent &event) {
@@ -233,12 +236,21 @@ void MainFrame::OnZipBrowsePressed(wxCommandEvent &event) {
 
   auto path = dialog.GetPath();
   wxFileName filename(path);
-
-  auto entry = ZipEntry::Create(path);
-  SetEntry(std::shared_ptr<Entry>(entry));
-  currentFileCtrl->SetValue(filename.GetFullPath());
+  LoadEntryFromFile<ZipEntry>(filename);
 }
 
+template <class T>
+void MainFrame::LoadEntryFromFile(const wxFileName &filename) {
+  wxProgressDialog progress("Loading", "Now Loading", 4, this);
+
+  progress.Update(1);
+  auto entry = T::Create(filename);
+  progress.Update(2);
+  SetEntry(std::shared_ptr<Entry>(entry));
+  progress.Update(3);
+  currentFileCtrl->SetValue(filename.GetFullPath());
+  progress.Update(4);
+}
 void MainFrame::SetEntry(std::shared_ptr<Entry> entry) {
   MainFrame::currentEntry = entry;
 

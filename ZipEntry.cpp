@@ -63,8 +63,8 @@ ZipEntry::~ZipEntry() {
   }
 }
 
-ZipEntry *ZipEntry::Create(const wxString &path) {
-  wxFile file(path);
+ZipEntry *ZipEntry::Create(const wxFileName &filename) {
+  wxFile file(filename.GetFullPath());
 
   int error;
   auto zipFile = zip_fdopen(file.fd(), ZIP_RDONLY, &error);
