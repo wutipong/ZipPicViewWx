@@ -107,7 +107,6 @@ void MainFrame::AddTreeItemsFromEntry(const wxTreeItemId &itemId,
 }
 
 void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
-  mutex.Lock();
   auto treeItemId = event.GetItem();
   auto rootId = dirTree->GetRootItem();
   auto currentFileEntry =
@@ -173,11 +172,9 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
   gridPanel->Refresh();
   gridPanel->Update();
 
-  loadThread = new ThumbnailLoadThread(this, loadEntries, currentEntry, mutex);
+  loadThread = new ThumbnailLoadThread(this, loadEntries, currentEntry);
   loadThread->Run();
   threadId = loadThread->GetId();
-
-  mutex.Unlock();
 }
 
 void MainFrame::OnImageButtonClick(wxCommandEvent &event) {

@@ -16,9 +16,8 @@ class MainFrame;
 class ThumbnailLoadThread : public wxThread {
 public:
   ThumbnailLoadThread(MainFrame *handler, const std::vector<::Entry *> &entries,
-                      std::shared_ptr<::Entry> pRootEntry, wxMutex &mutex)
-      : wxThread(wxTHREAD_DETACHED), entries(entries), pRootEntry(pRootEntry),
-        mutex(mutex) {
+                      std::shared_ptr<::Entry> pRootEntry)
+      : wxThread(wxTHREAD_DETACHED), entries(entries), pRootEntry(pRootEntry) {
     m_pHandler = handler;
     ThumbnailLoadThread::entries = entries;
   };
@@ -27,7 +26,6 @@ private:
   virtual wxThread::ExitCode Entry() override;
   MainFrame *m_pHandler;
   std::vector<::Entry *> entries;
-  wxMutex &mutex;
   std::shared_ptr<::Entry> pRootEntry;
 };
 

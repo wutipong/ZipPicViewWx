@@ -30,7 +30,6 @@ private:
   wxButton *zipBrowseBtn;
   wxGauge *progress;
   wxStaticText *progressDescText;
-  wxMutex mutex;
 
   wxThreadIdType threadId;
   ThumbnailLoadThread *loadThread;
