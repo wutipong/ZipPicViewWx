@@ -9,11 +9,14 @@
 Entry *ArchiveExtractor::Create(const wxFileName &filename) {
   wxFile inputFile(filename.GetFullPath());
   auto strTempDir = wxStandardPaths::Get().GetTempDir();
-  wxFileName tempDirName = strTempDir + filename.GetName();
+  wxLogMessage(strTempDir);
+  wxFileName tempDirName(
+      strTempDir + wxFileName::GetPathSeparator() + filename.GetFullName(), "");
+
   if (tempDirName.DirExists())
     tempDirName.Rmdir();
 
-  if (tempDirName.Mkdir(wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL))
+  if (!tempDirName.Mkdir())
     return nullptr;
 
   archive_entry *entry;
@@ -23,16 +26,17 @@ Entry *ArchiveExtractor::Create(const wxFileName &filename) {
   archive_read_support_format_all(a);
 
   if ((r = archive_read_open_fd(a, inputFile.fd(), 10240)))
-    exit(1);
+    return nullptr;
+
   while ((r = archive_read_next_header(a, &entry)) != ARCHIVE_EOF) {
     if (archive_entry_size(entry) < 0) {
       continue;
     }
     wxFileName entryFilename(archive_entry_pathname(entry));
 
-    wxFile targetFile(tempDirName.GetFullPath() + entryFilename.GetPath(),
+    wxFile targetFile(tempDirName.GetFullPath() + entryFilename.GetFullName(),
                       wxFile::write);
-    wxLogDebug(tempDirName.GetFullPath() + entryFilename.GetPath());
+
     archive_read_data_into_fd(a, targetFile.fd());
   }
   archive_read_close(a);

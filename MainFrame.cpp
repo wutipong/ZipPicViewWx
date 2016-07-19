@@ -29,7 +29,7 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   dirBrowseBtn = new wxButton(panel, wxID_ANY, "Directory...");
   dirBrowseBtn->Bind(wxEVT_BUTTON, &MainFrame::OnDirBrowsePressed, this);
   dirBrowseBtn->SetToolTip("Load images from a directory.");
-  zipBrowseBtn = new wxButton(panel, wxID_ANY, "Zip...");
+  zipBrowseBtn = new wxButton(panel, wxID_ANY, "Archive...");
   zipBrowseBtn->Bind(wxEVT_BUTTON, &MainFrame::OnZipBrowsePressed, this);
   zipBrowseBtn->SetToolTip("Load images from a zip file.");
 
@@ -229,15 +229,20 @@ void MainFrame::OnDirBrowsePressed(wxCommandEvent &event) {
 }
 
 void MainFrame::OnZipBrowsePressed(wxCommandEvent &event) {
-  wxFileDialog dialog(this, _("Open ZIP file"), "", "",
-                      "ZIP files (*.zip)|*.zip",
-                      wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+  wxFileDialog dialog(
+      this, _("Open Archive file"), "", "",
+      "ZIP files (*.zip)|*.zip|RAR files (*.rar)|*.rar|7z files (*.7z)|*.7z",
+      wxFD_OPEN | wxFD_FILE_MUST_EXIST);
   if (dialog.ShowModal() == wxID_CANCEL)
     return;
 
   auto path = dialog.GetPath();
   wxFileName filename(path);
-  LoadEntryFromFile<ArchiveExtractor>(filename);
+
+  if (filename.GetExt() == "zip")
+    LoadEntryFromFile<ZipEntry>(filename);
+  else
+    LoadEntryFromFile<ArchiveExtractor>(filename);
 }
 
 template <class T>
