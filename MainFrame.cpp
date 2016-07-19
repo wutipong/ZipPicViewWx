@@ -215,26 +215,26 @@ void MainFrame::OnOnTopChecked(wxCommandEvent &event) {
 }
 
 void MainFrame::OnDirBrowsePressed(wxCommandEvent &event) {
-  wxDirDialog dlg(this, "Choose directory", "",
+  wxDirDialog dlg(this, "Choose directory", filename.GetPath(),
                   wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
   if (dlg.ShowModal() == wxID_CANCEL)
     return;
 
-  wxFileName filename = wxFileName::DirName(dlg.GetPath());
+  filename = wxFileName::DirName(dlg.GetPath());
   auto entry = FileEntry::Create(filename);
   SetEntry(std::shared_ptr<Entry>(entry));
   currentFileCtrl->SetValue(filename.GetFullPath());
 }
 
 void MainFrame::OnZipBrowsePressed(wxCommandEvent &event) {
-  wxFileDialog dialog(this, _("Open ZIP file"), "", "",
-                      "ZIP files (*.zip)|*.zip",
+  wxFileDialog dialog(this, _("Open ZIP file"), filename.GetPath(),
+                      filename.GetName(), "ZIP files (*.zip)|*.zip",
                       wxFD_OPEN | wxFD_FILE_MUST_EXIST);
   if (dialog.ShowModal() == wxID_CANCEL)
     return;
 
   auto path = dialog.GetPath();
-  wxFileName filename(path);
+  filename = path;
 
   auto entry = ZipEntry::Create(path);
   SetEntry(std::shared_ptr<Entry>(entry));

@@ -1,6 +1,7 @@
 #ifndef __MAIN_FRAME_H__
 #define __MAIN_FRAME_H__
 
+#include <wx/filename.h>
 #include <wx/filepicker.h>
 #include <wx/gauge.h>
 #include <wx/notebook.h>
@@ -50,6 +51,7 @@ private:
   void SetEntry(std::shared_ptr<Entry> entry);
 
   std::shared_ptr<Entry> currentEntry;
+  wxFileName filename;
 };
 
 #endif

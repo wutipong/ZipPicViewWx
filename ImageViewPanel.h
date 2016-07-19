@@ -3,6 +3,7 @@
 
 #include <random>
 #include <wx/button.h>
+#include <wx/filename.h>
 #include <wx/spinctrl.h>
 #include <wx/tglbtn.h>
 #include <wx/timer.h>
@@ -33,6 +34,7 @@ private:
   wxToggleButton *btnFitSize;
   wxButton *btnActualSize;
   wxTimer timer;
+  wxFileName filename;
 
   std::vector<Entry *> entries;
   std::vector<Entry *>::const_iterator entryIter;

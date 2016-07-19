@@ -285,11 +285,12 @@ void ImageViewPanel::OnTimerNotify(wxTimerEvent &timer) {
 
 void ImageViewPanel::OnSaveButtonClick(wxCommandEvent &event) {
   Entry *entry = *entryIter;
-  wxFileDialog dialog(this, "Save As...", wxEmptyString, entry->Name(),
+  wxFileDialog dialog(this, "Save As...", filename.GetPath(), entry->Name(),
                       wxFileSelectorDefaultWildcardStr, wxFD_SAVE);
   if (dialog.ShowModal() != wxID_OK)
     return;
 
+  filename = dialog.GetPath();
   wxFileOutputStream output(dialog.GetPath());
   entry->WriteStream(output);
   output.Close();
