@@ -11,11 +11,22 @@ if (MSYS)
 	INCLUDE(InstallRequiredSystemLibraries)
 	get_filename_component( Mingw_Path ${CMAKE_CXX_COMPILER} PATH )
 
-    set( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS ${Mingw_Path}/wxbase30u_gcc_custom.dll
-		${Mingw_Path}/wxmsw30u_core_gcc_custom.dll ${Mingw_Path}/libjpeg-8.dll
-		${Mingw_Path}/liblzma-5.dll ${Mingw_Path}/libpng16-16.dll
-		${Mingw_Path}/libtiff-5.dll ${Mingw_Path}/libzip-4.dll ${Mingw_Path}/zlib1.dll
-		${Mingw_Path}/libwinpthread-1.dll)
+    set( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS
+        ${Mingw_Path}/libarchive-13.dll
+        ${Mingw_Path}/libbz2-1.dll
+        ${Mingw_Path}/libexpat-1.dll
+        ${Mingw_Path}/libiconv-2.dll
+        ${Mingw_Path}/libjpeg-8.dll
+        ${Mingw_Path}/liblzma-5.dll
+        ${Mingw_Path}/liblzo2-2.dll
+        ${Mingw_Path}/libnettle-6-2.dll
+        ${Mingw_Path}/libpng16-16.dll
+        ${Mingw_Path}/libtiff-5.dll
+        ${Mingw_Path}/libwinpthread-1.dll
+        ${Mingw_Path}/libzip-4.dll
+        ${Mingw_Path}/wxbase30u_gcc_custom.dll
+        ${Mingw_Path}/wxmsw30u_core_gcc_custom.dll
+        ${Mingw_Path}/zlib1.dll)
 
 	if(CMAKE_SIZEOF_VOID_P EQUAL 8) #win64
 		set ( CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}
