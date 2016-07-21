@@ -222,7 +222,7 @@ void MainFrame::OnDirBrowsePressed(wxCommandEvent &event) {
                   wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
   if (dlg.ShowModal() == wxID_CANCEL)
     return;
-  
+
   wxFileName filename = wxFileName::DirName(dlg.GetPath());
   LoadEntryFromFile<FileEntry>(filename);
 }
@@ -296,7 +296,7 @@ void MainFrame::OnThumbnailLoadDone(wxThreadEvent &event) {
   // progressDescText->SetLabelText("Idle");
   // progress->SetValue(progress->GetRange());
 
-  if (event.GetInt() != threadId)
+  if (event.GetExtraLong() != threadId)
     return;
 
   GetStatusBar()->SetStatusText("Idle");
