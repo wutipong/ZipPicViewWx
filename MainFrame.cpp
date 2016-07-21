@@ -222,16 +222,17 @@ void MainFrame::OnDirBrowsePressed(wxCommandEvent &event) {
                   wxDD_DEFAULT_STYLE | wxDD_DIR_MUST_EXIST);
   if (dlg.ShowModal() == wxID_CANCEL)
     return;
-  
+
   wxFileName filename = wxFileName::DirName(dlg.GetPath());
   LoadEntryFromFile<FileEntry>(filename);
 }
 
 void MainFrame::OnZipBrowsePressed(wxCommandEvent &event) {
-  wxFileDialog dialog(
-      this, _("Open Archive file"), "", "",
-      "ZIP files (*.zip)|*.zip|RAR files (*.rar)|*.rar|7z files (*.7z)|*.7z",
-      wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+  wxFileDialog dialog(this, _("Open Archive file"), "", "",
+                      "Archive Files|*.rar;*.zip;*.7z|ZIP files"
+                      "(*.zip)|*.zip|RAR files (*.rar)|*.rar|7z files "
+                      "(*.7z)|*.7z",
+                      wxFD_OPEN | wxFD_FILE_MUST_EXIST);
   if (dialog.ShowModal() == wxID_CANCEL)
     return;
 
