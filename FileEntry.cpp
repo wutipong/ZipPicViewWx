@@ -1,7 +1,7 @@
 #include "FileEntry.h"
 #include <wx/wfstream.h>
 
-FileEntry *FileEntry::Create(const wxFileName &filename) {
+FileEntry *FileEntry::Create(const wxFileName &filename, std::function<void()> updateFnc) {
   wxArrayString paths;
 
   auto root = new FileEntry(filename);
@@ -14,6 +14,7 @@ FileEntry *FileEntry::Create(const wxFileName &filename) {
 
   for (int i = 0; i < paths.Count(); i++) {
     AddChildrenFromPath(entryMap, paths.Item(i));
+    updateFnc();
   }
 
   root->SortChildren();

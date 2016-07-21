@@ -63,7 +63,7 @@ ZipEntry::~ZipEntry() {
   }
 }
 
-ZipEntry *ZipEntry::Create(const wxFileName &filename) {
+ZipEntry *ZipEntry::Create(const wxFileName &filename, std::function<void()> updateFnc) {
   wxFile file(filename.GetFullPath());
 
   int error;
@@ -88,6 +88,7 @@ ZipEntry *ZipEntry::Create(const wxFileName &filename) {
 
   entryMap[""] = root;
   for (auto &path : innerPaths) {
+    updateFnc();
     AddChildrenFromPath(zipFile, mutex, entryMap, path);
   }
 

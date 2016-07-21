@@ -18,7 +18,7 @@ public:
   FileEntry() = delete;
   FileEntry(const FileEntry &) = delete;
   virtual ~FileEntry();
-  static FileEntry *Create(const wxFileName &filename);
+  static FileEntry *Create(const wxFileName &filename, std::function<void()> updateFnc);
 
   virtual wxImage LoadImage() override;
   virtual void WriteStream(wxOutputStream &) override;

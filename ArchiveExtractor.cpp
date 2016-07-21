@@ -6,17 +6,20 @@
 #include <wx/log.h>
 #include <wx/stdpaths.h>
 
-Entry *ArchiveExtractor::Create(const wxFileName &filename, std::function<void()> updateFnc) {
+Entry *ArchiveExtractor::Create(const wxFileName &filename,
+                                std::function<void()> updateFnc) {
   wxFile inputFile(filename.GetFullPath());
   auto strTempDir = wxStandardPaths::Get().GetTempDir();
 
-  wxFileName tempDirName(
-      strTempDir + wxFileName::GetPathSeparator() + filename.GetFullName(), "");
+  wxFileName tempDirName(strTempDir + wxFileName::GetPathSeparator() +
+                             "__ZPV__" + wxFileName::GetPathSeparator() +
+                             filename.GetFullName(),
+                         "");
 
   if (tempDirName.DirExists())
     tempDirName.Rmdir(wxPATH_RMDIR_RECURSIVE);
 
-  if (!tempDirName.Mkdir())
+  if (!tempDirName.Mkdir(wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL))
     return nullptr;
 
   archive_entry *entry;
@@ -35,17 +38,22 @@ Entry *ArchiveExtractor::Create(const wxFileName &filename, std::function<void()
     }
     auto entryPathName = archive_entry_pathname(entry);
 
-    auto entryType = archive_entry_filetype(entry) ;
-    if(entryType != AE_IFREG && entryType != AE_IFDIR)
+    auto entryType = archive_entry_filetype(entry);
+    if (entryType != AE_IFREG && entryType != AE_IFDIR)
       continue;
 
     wxFileName entryFilename(entryPathName);
-    wxFileName entryInTemp(tempDirName.GetFullPath() + entryFilename.GetFullPath());
-    entryInTemp.Mkdir( wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
+    wxFileName entryInTemp(tempDirName.GetFullPath() +
+                           entryFilename.GetFullPath());
+    entryInTemp.Mkdir(wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
 
-    if(entryType == AE_IFREG) {
+    if (entryType == AE_IFREG) {
       wxFile targetFile(entryInTemp.GetFullPath(), wxFile::write);
-      archive_read_data_into_fd(a, targetFile.fd());
+      auto result = archive_read_data_into_fd(a, targetFile.fd());
+      targetFile.Close();
+
+      if (result < ARCHIVE_WARN)
+        wxRemoveFile(entryInTemp.GetFullPath());
     }
   }
   archive_read_close(a);

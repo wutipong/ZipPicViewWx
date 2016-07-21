@@ -249,13 +249,16 @@ template <class T>
 void MainFrame::LoadEntryFromFile(const wxFileName &filename) {
   wxProgressDialog progress("Loading", "Now Loading", 4, this);
 
-  progress.Update(1);
-  auto entry = T::Create(filename);
-  progress.Update(2);
+  auto entry = T::Create(filename, [&progress](){
+      progress.Pulse();
+  });
+  if(entry == nullptr) {
+    wxMessageBox("Failed to load file", "Error", wxICON_ERROR);
+    return;
+  }
   SetEntry(std::shared_ptr<Entry>(entry));
-  progress.Update(3);
+  progress.Pulse();
   currentFileCtrl->SetValue(filename.GetFullPath());
-  progress.Update(4);
 }
 void MainFrame::SetEntry(std::shared_ptr<Entry> entry) {
   MainFrame::currentEntry = entry;
