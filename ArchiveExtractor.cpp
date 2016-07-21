@@ -2,6 +2,7 @@
 #include "FileEntry.h"
 #include <archive.h>
 #include <archive_entry.h>
+#include <functional>
 #include <wx/dir.h>
 #include <wx/log.h>
 #include <wx/stdpaths.h>
@@ -9,12 +10,12 @@
 Entry *ArchiveExtractor::Create(const wxFileName &filename) {
   wxFile inputFile(filename.GetFullPath());
   auto strTempDir = wxStandardPaths::Get().GetTempDir();
-  wxLogMessage(strTempDir);
+
   wxFileName tempDirName(
       strTempDir + wxFileName::GetPathSeparator() + filename.GetFullName(), "");
 
   if (tempDirName.DirExists())
-    tempDirName.Rmdir();
+    tempDirName.Rmdir(wxPATH_RMDIR_RECURSIVE);
 
   if (!tempDirName.Mkdir())
     return nullptr;
@@ -32,12 +33,20 @@ Entry *ArchiveExtractor::Create(const wxFileName &filename) {
     if (archive_entry_size(entry) < 0) {
       continue;
     }
-    wxFileName entryFilename(archive_entry_pathname(entry));
+    auto entryPathName = archive_entry_pathname(entry);
 
-    wxFile targetFile(tempDirName.GetFullPath() + entryFilename.GetFullName(),
-                      wxFile::write);
+    auto entryType = archive_entry_filetype(entry) ;
+    if(entryType != AE_IFREG && entryType != AE_IFDIR)
+      continue;
 
-    archive_read_data_into_fd(a, targetFile.fd());
+    wxFileName entryFilename(entryPathName);
+    wxFileName entryInTemp(tempDirName.GetFullPath() + entryFilename.GetFullPath());
+    entryInTemp.Mkdir( wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
+
+    if(entryType == AE_IFREG) {
+      wxFile targetFile(entryInTemp.GetFullPath(), wxFile::write);
+      archive_read_data_into_fd(a, targetFile.fd());
+    }
   }
   archive_read_close(a);
   archive_read_free(a);
