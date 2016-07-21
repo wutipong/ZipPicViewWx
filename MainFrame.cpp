@@ -1,4 +1,5 @@
 #include "MainFrame.h"
+#include "ArchiveExtractor.h"
 #include "FileEntry.h"
 #include "ImageViewPanel.h"
 #include "ZipEntry.h"
@@ -11,7 +12,6 @@
 enum MainFrameIds { ID_DIRECTORY_TREE = 1, ID_IMAGE_BUTTON };
 
 MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
-
   auto panel = new wxPanel(this);
 
   auto outerSizer = new wxBoxSizer(wxVERTICAL);
@@ -29,7 +29,7 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
   dirBrowseBtn = new wxButton(panel, wxID_ANY, "Directory...");
   dirBrowseBtn->Bind(wxEVT_BUTTON, &MainFrame::OnDirBrowsePressed, this);
   dirBrowseBtn->SetToolTip("Load images from a directory.");
-  zipBrowseBtn = new wxButton(panel, wxID_ANY, "Zip...");
+  zipBrowseBtn = new wxButton(panel, wxID_ANY, "Archive...");
   zipBrowseBtn->Bind(wxEVT_BUTTON, &MainFrame::OnZipBrowsePressed, this);
   zipBrowseBtn->SetToolTip("Load images from a zip file.");
 
@@ -107,7 +107,6 @@ void MainFrame::AddTreeItemsFromEntry(const wxTreeItemId &itemId,
 }
 
 void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
-  mutex.Lock();
   auto treeItemId = event.GetItem();
   auto rootId = dirTree->GetRootItem();
   auto currentFileEntry =
@@ -115,7 +114,7 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
 
   auto gridPanel = dynamic_cast<wxScrolledWindow *>(splitter->GetWindow2());
 
-  if (loadThread && loadThread->IsAlive()) {
+  if (loadThread) {
     loadThread->Delete(nullptr, wxTHREAD_WAIT_BLOCK);
     loadThread = nullptr;
   }
@@ -173,22 +172,26 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
   gridPanel->Refresh();
   gridPanel->Update();
 
-  loadThread = new ThumbnailLoadThread(this, loadEntries, currentEntry, mutex);
+  loadThread = new ThumbnailLoadThread(this, loadEntries, currentEntry);
   loadThread->Run();
-
-  mutex.Unlock();
+  threadId = loadThread->GetId();
 }
 
 void MainFrame::OnImageButtonClick(wxCommandEvent &event) {
+  wxProgressDialog progress("Loading", "Now Loading", 4, this);
   auto button = dynamic_cast<wxButton *>(event.GetEventObject());
   auto clientData =
       dynamic_cast<wxStringClientData *>(button->GetClientObject());
 
   auto page = notebook->GetPageCount();
+  progress.Update(1);
   auto childEntry =
       dynamic_cast<EntryItemData *>(button->GetClientObject())->Get();
+  progress.Update(2);
   auto bitmapCtl = new ImageViewPanel(notebook, childEntry);
+  progress.Update(3);
   notebook->AddPage(bitmapCtl, childEntry->Name());
+  progress.Update(4);
   notebook->SetSelection(page);
 }
 
@@ -220,15 +223,16 @@ void MainFrame::OnDirBrowsePressed(wxCommandEvent &event) {
   if (dlg.ShowModal() == wxID_CANCEL)
     return;
 
-  filename = wxFileName::DirName(dlg.GetPath());
-  auto entry = FileEntry::Create(filename);
-  SetEntry(std::shared_ptr<Entry>(entry));
-  currentFileCtrl->SetValue(filename.GetFullPath());
+  wxFileName filename = wxFileName::DirName(dlg.GetPath());
+  LoadEntryFromFile<FileEntry>(filename);
 }
 
 void MainFrame::OnZipBrowsePressed(wxCommandEvent &event) {
-  wxFileDialog dialog(this, _("Open ZIP file"), filename.GetPath(),
-                      filename.GetName(), "ZIP files (*.zip)|*.zip",
+  wxFileDialog dialog(this, _("Open Archive file"), "", "",
+                      "Archive Files|*.rar;*.zip;*.7z|ZIP files"
+                      "(*.zip)|*.zip|RAR files (*.rar)|*.rar|7z files "
+                      "(*.7z)|*.7z|All Files| *.*",
+
                       wxFD_OPEN | wxFD_FILE_MUST_EXIST);
   if (dialog.ShowModal() == wxID_CANCEL)
     return;
@@ -236,11 +240,27 @@ void MainFrame::OnZipBrowsePressed(wxCommandEvent &event) {
   auto path = dialog.GetPath();
   filename = path;
 
-  auto entry = ZipEntry::Create(path);
-  SetEntry(std::shared_ptr<Entry>(entry));
-  currentFileCtrl->SetValue(filename.GetFullPath());
+  if (filename.GetExt() == "zip")
+    LoadEntryFromFile<ZipEntry>(filename);
+  else
+    LoadEntryFromFile<ArchiveExtractor>(filename);
 }
 
+template <class T>
+void MainFrame::LoadEntryFromFile(const wxFileName &filename) {
+  wxProgressDialog progress("Loading", "Now Loading", 4, this);
+
+  auto entry = T::Create(filename, [&progress](){
+      progress.Pulse();
+  });
+  if(entry == nullptr) {
+    wxMessageBox("Failed to load file", "Error", wxICON_ERROR);
+    return;
+  }
+  SetEntry(std::shared_ptr<Entry>(entry));
+  progress.Pulse();
+  currentFileCtrl->SetValue(filename.GetFullPath());
+}
 void MainFrame::SetEntry(std::shared_ptr<Entry> entry) {
   MainFrame::currentEntry = entry;
 
@@ -263,7 +283,7 @@ void MainFrame::OnThumbnailLoadUpdated(wxThreadEvent &event) {
   if (data.index >= data.total)
     return;
 
-  if (data.id != loadThread->GetId())
+  if (data.id != threadId)
     return;
 
   /*
@@ -281,7 +301,7 @@ void MainFrame::OnThumbnailLoadDone(wxThreadEvent &event) {
   // progressDescText->SetLabelText("Idle");
   // progress->SetValue(progress->GetRange());
 
-  if (event.GetInt() != loadThread->GetId())
+  if (event.GetExtraLong() != threadId)
     return;
 
   GetStatusBar()->SetStatusText("Idle");

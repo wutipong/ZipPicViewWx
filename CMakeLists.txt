@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 2.6)
 project(ZipPicView CXX)
 set(CMAKE_CXX_STANDARD 11)
 
-set(SRC MainFrame.cpp ZipPicViewApp.cpp ImageViewPanel.cpp Entry.h ZipEntry.cpp ZipEntry.h
-	FileEntry.cpp FileEntry.h ThumbnailLoadThread.cpp ThumbnailLoadThread.h)
+set(SRC MainFrame.cpp ZipPicViewApp.cpp ImageViewPanel.cpp ZipEntry.cpp
+FileEntry.cpp ThumbnailLoadThread.cpp ThumbnailLoadThread.h ArchiveExtractor.cpp)
 
 if (MSYS)
     enable_language(RC)
@@ -32,11 +32,13 @@ set(wxWidgets_CONFIGURATION mswu)
 find_package(wxWidgets COMPONENTS core base REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBZIP REQUIRED libzip)
+pkg_check_modules(LIBARCHIVE REQUIRED libarchive)
 
 include(${wxWidgets_USE_FILE})
 include_directories(${LIBZIP_INCLUDE_DIRS})
+include_directories(${LIBARCHIVE_INCLUDE_DIRS})
 
-target_link_libraries(${PROJECT_NAME} ${wxWidgets_LIBRARIES} ${LIBZIP_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${wxWidgets_LIBRARIES} ${LIBZIP_LIBRARIES} ${LIBARCHIVE_LIBRARIES})
 
 if (WINDOWS OR MSYS)
 	install( PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION . )
@@ -44,7 +46,7 @@ endif (WINDOWS OR MSYS)
 
 install( TARGETS ${PROJECT_NAME} RUNTIME DESTINATION . )
 
-SET(CPACK_PACKAGE_VERSION_MAJOR "DEV" CACHE STRING "Major Version")
+SET(CPACK_PACKAGE_VERSION_MAJOR "0" CACHE STRING "Major Version")
 SET(CPACK_PACKAGE_VERSION_MINOR "0" CACHE STRING "Minor Version")
 SET(CPACK_PACKAGE_VERSION_PATCH "0" CACHE STRING "Patch Version")
 SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")

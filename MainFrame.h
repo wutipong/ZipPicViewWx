@@ -31,8 +31,8 @@ private:
   wxButton *zipBrowseBtn;
   wxGauge *progress;
   wxStaticText *progressDescText;
-  wxMutex mutex;
 
+  wxThreadIdType threadId;
   ThumbnailLoadThread *loadThread;
   std::vector<wxButton *> imgButtons;
 
@@ -49,6 +49,7 @@ private:
   void AddTreeItemsFromEntry(const wxTreeItemId &itemId, Entry *entry);
 
   void SetEntry(std::shared_ptr<Entry> entry);
+  template <class T> void LoadEntryFromFile(const wxFileName &filename);
 
   std::shared_ptr<Entry> currentEntry;
   wxFileName filename;
