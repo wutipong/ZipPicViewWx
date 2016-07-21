@@ -297,7 +297,7 @@ void MainFrame::OnThumbnailLoadDone(wxThreadEvent &event) {
   // progressDescText->SetLabelText("Idle");
   // progress->SetValue(progress->GetRange());
 
-  if (event.GetInt() != threadId)
+  if (event.GetExtraLong() != threadId)
     return;
 
   GetStatusBar()->SetStatusText("Idle");

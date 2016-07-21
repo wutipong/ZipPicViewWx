@@ -33,7 +33,7 @@ wxThread::ExitCode ThumbnailLoadThread::Entry() {
   }
 
   auto event = new wxThreadEvent(wxEVT_COMMAND_THMBTREAD_DONE);
-  event->SetInt(GetId());
+  event->SetExtraLong(GetId());
   wxQueueEvent(m_pHandler, event);
   return (wxThread::ExitCode) new bool(cancelled);
 }
