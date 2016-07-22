@@ -36,7 +36,7 @@ Entry *ArchiveExtractor::Create(const wxFileName &filename,
     if (archive_entry_size(entry) < 0) {
       continue;
     }
-    auto entryPathName = archive_entry_pathname(entry);
+    auto entryPathName = archive_entry_pathname_w(entry);
 
     auto entryType = archive_entry_filetype(entry);
     if (entryType != AE_IFREG && entryType != AE_IFDIR)
@@ -45,6 +45,7 @@ Entry *ArchiveExtractor::Create(const wxFileName &filename,
     wxFileName entryFilename(entryPathName);
     wxFileName entryInTemp(tempDirName.GetFullPath() +
                            entryFilename.GetFullPath());
+
     entryInTemp.Mkdir(wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
 
     if (entryType == AE_IFREG) {
