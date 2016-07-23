@@ -82,6 +82,7 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
                                wxDefaultSize, wxBU_EXACTFIT | wxBU_NOTEXT);
   btnAuto->Bind(wxEVT_TOGGLEBUTTON, &ImageViewPanel::OnBtnAutoToggle, this);
   btnAuto->SetBitmap(wxICON(IDI_ICON_AUTO));
+  btnAuto->SetBitmapPressed(wxICON(IDI_ICON_PAUSE));
   btnAuto->SetToolTip("Auto advance to the next image");
 
   btnRandom = new wxToggleButton(this, wxID_ANY, "Auto", wxDefaultPosition,
