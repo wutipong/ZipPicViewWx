@@ -1,7 +1,8 @@
 #include "FileEntry.h"
 #include <wx/wfstream.h>
 
-FileEntry *FileEntry::Create(const wxFileName &filename, std::function<void()> updateFnc) {
+FileEntry *FileEntry::Create(const wxFileName &filename,
+                             std::function<void()> updateFnc) {
   wxArrayString paths;
 
   auto root = new FileEntry(filename);
@@ -21,16 +22,10 @@ FileEntry *FileEntry::Create(const wxFileName &filename, std::function<void()> u
   return root;
 }
 
-wxImage FileEntry::LoadImage() {
-  mutex->Lock();
+wxInputStream *FileEntry::GetInputStream() {
   if (IsDirectory())
-    return wxImage();
-
-  wxFileInputStream stream(filename.GetFullPath());
-  wxImage output(stream);
-  mutex->Unlock();
-
-  return output;
+    return nullptr;
+  return new wxFileInputStream(filename.GetFullPath());
 }
 
 FileEntry::FileEntry(const wxFileName &filename, const bool &isRoot)
@@ -73,14 +68,3 @@ FileEntry *FileEntry::AddChildrenFromPath(EntryMap &entryMap,
 }
 
 FileEntry::~FileEntry() { delete mutex; }
-
-void FileEntry::WriteStream(wxOutputStream &output) {
-  mutex->Lock();
-  if (IsDirectory())
-    return;
-
-  wxFileInputStream stream(filename.GetFullPath());
-  output.Write(stream);
-
-  mutex->Unlock();
-}

@@ -16,10 +16,8 @@ public:
   ZipEntry() = delete;
   ZipEntry(const ZipEntry &) = delete;
 
-  static ZipEntry *Create(const wxFileName &filename, std::function<void()> updateFnc);
-
-  virtual wxImage LoadImage() override;
-  virtual void WriteStream(wxOutputStream &) override;
+  static ZipEntry *Create(const wxFileName &filename,
+                          std::function<void()> updateFnc);
 
   virtual ~ZipEntry();
   virtual bool IsRoot() const override { return innerPath.IsEmpty(); }
@@ -33,6 +31,9 @@ private:
   zip_t *zipFile;
   wxString innerPath;
   wxMutex *mutex;
+
+protected:
+  virtual wxInputStream *GetInputStream() override;
 };
 
 #endif // ZIPPICVIEW_ZIPENTRY_H

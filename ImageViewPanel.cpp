@@ -145,7 +145,7 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
 
   entryIter = std::find(entries.begin(), entries.end(), entry);
 
-  image = (*entryIter)->LoadImage();
+  image = (*entryIter)->CreateImage();
 
   bitmap = new wxStaticBitmap(scrollPanel, wxID_ANY, wxBitmap(image));
   scrollSizer->Add(bitmap);
@@ -231,7 +231,7 @@ void ImageViewPanel::SetImageEntry(Entry *entry) {
     return;
   notebook->SetPageText(currentPage, entry->Name());
 
-  image = entry->LoadImage();
+  image = entry->CreateImage();
   if (btnFitSize->GetValue())
     FitImage();
   else

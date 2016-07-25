@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 project(ZipPicView CXX)
 set(CMAKE_CXX_STANDARD 11)
 
-set(SRC MainFrame.cpp ZipPicViewApp.cpp ImageViewPanel.cpp ZipEntry.cpp
+set(SRC Entry.cpp MainFrame.cpp ZipPicViewApp.cpp ImageViewPanel.cpp ZipEntry.cpp
 FileEntry.cpp ThumbnailLoadThread.cpp ThumbnailLoadThread.h ArchiveExtractor.cpp)
 
 if (MSYS)

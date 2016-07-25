@@ -22,8 +22,8 @@ public:
   wxString Name() { return name; }
   bool IsDirectory() { return dir; }
 
-  virtual wxImage LoadImage() = 0;
-  virtual void WriteStream(wxOutputStream &) = 0;
+  wxImage CreateImage();
+  void WriteStream(wxOutputStream &output);
 
   EntryIter FirstChild() { return children.begin(); }
   EntryIter EndChild() { return children.end(); }
@@ -31,21 +31,9 @@ public:
   EntryIter begin() { return FirstChild(); }
   EntryIter end() { return EndChild(); }
 
-  virtual ~Entry() {
-    for (auto entry : children) {
-      delete entry;
-    }
-    children.clear();
-  }
+  virtual ~Entry();
 
-  void PrintChildren(int level = 0) {
-    for (int i = 0; i < level; i++)
-      std::cout << "|-";
-    std::cout << Name() << std::endl;
-    for (auto child : children) {
-      child->PrintChildren(level + 1);
-    }
-  }
+  void PrintChildren(const int &level = 0);
   size_t Count() { return children.size(); }
   Entry *Child(const size_t &i) { return children[i]; };
   Entry *operator[](const size_t &i) { return Child(i); };
@@ -69,20 +57,9 @@ protected:
   void SetName(const wxString &_name) { name = _name; }
   void SetIsDirectory(const bool &_dir) { dir = _dir; }
 
-  void SortChildren() {
-    std::sort(children.begin(), children.end(), [](Entry *e1, Entry *e2) {
-      if (e1->IsDirectory() == e2->IsDirectory()) {
-        return e1->Name() < e2->Name();
-      } else if (e1->IsDirectory()) {
-        return true;
-      } else {
-        return false;
-      }
-    });
+  void SortChildren();
 
-    std::for_each(children.begin(), children.end(),
-                  [](Entry *e) { e->SortChildren(); });
-  }
+  virtual wxInputStream *GetInputStream() = 0;
 };
 
 class EntryItemData : public wxTreeItemData {

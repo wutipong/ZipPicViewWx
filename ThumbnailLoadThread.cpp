@@ -13,7 +13,7 @@ wxThread::ExitCode ThumbnailLoadThread::Entry() {
     }
 
     auto entry = entries[i];
-    auto image = entry->LoadImage();
+    auto image = entry->CreateImage();
 
     auto longerSide = image.GetWidth() > image.GetHeight() ? image.GetWidth()
                                                            : image.GetHeight();

@@ -1,10 +1,13 @@
 #include "Entry.h"
+#include <wx/icon.h>
+#include "res/img_error.xpm"
 
 wxImage Entry::CreateImage() {
   if (IsDirectory())
     return wxImage();
 
   auto stream = GetInputStream();
+  if(!stream) return wxImage(IMG_ERROR_xpm);
   wxImage output(*stream);
   delete stream;
 
@@ -13,6 +16,7 @@ wxImage Entry::CreateImage() {
 
 void Entry::WriteStream(wxOutputStream &output) {
   auto stream = GetInputStream();
+  if(!stream) return;
   output.Write(*stream);
   delete stream;
 }
@@ -24,7 +28,7 @@ Entry::~Entry() {
   children.clear();
 }
 
-void Entry::PrintChildren(const int& level) {
+void Entry::PrintChildren(const int &level) {
   for (int i = 0; i < level; i++)
     std::cout << "|-";
   std::cout << Name() << std::endl;

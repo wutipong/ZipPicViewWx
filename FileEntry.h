@@ -18,10 +18,9 @@ public:
   FileEntry() = delete;
   FileEntry(const FileEntry &) = delete;
   virtual ~FileEntry();
-  static FileEntry *Create(const wxFileName &filename, std::function<void()> updateFnc);
+  static FileEntry *Create(const wxFileName &filename,
+                           std::function<void()> updateFnc);
 
-  virtual wxImage LoadImage() override;
-  virtual void WriteStream(wxOutputStream &) override;
   virtual bool IsRoot() const override { return isRoot; }
 
 private:
@@ -32,6 +31,9 @@ private:
 
   static FileEntry *AddChildrenFromPath(EntryMap &entryMap,
                                         const wxFileName &filename);
+
+protected:
+  virtual wxInputStream *GetInputStream() override;
 };
 
 #endif
