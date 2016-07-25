@@ -9,6 +9,7 @@
 #include <wx/timer.h>
 #include <wx/wx.h>
 
+#include "CImg/CImg.h"
 #include "Entry.h"
 
 class ImageViewPanel : public wxPanel {
@@ -36,16 +37,14 @@ private:
   wxTimer timer;
   wxFileName filename;
 
-  wxBitmap bitmapActual;
-  unsigned char *bufferActual = nullptr;
-  size_t bufferLength;
-
   std::vector<Entry *> entries;
   std::vector<Entry *>::const_iterator entryIter;
 
   std::random_device r;
   std::default_random_engine randomEngine;
   std::uniform_int_distribution<int> random;
+
+  cimg_library::CImg<unsigned char> cimgImage;
 
   void OnCloseButtonClick(wxCommandEvent &event);
   void OnBtnFitSizeToggle(wxCommandEvent &event);
@@ -67,6 +66,10 @@ private:
 
   wxImage CreateScaledImage(const unsigned int &width,
                             const unsigned int &height);
+
+  static cimg_library::CImg<unsigned char>
+  CImgFromWxImage(const wxImage &image);
+  static wxImage wxImageFromCImg(const cimg_library::CImg<unsigned char> &img);
 };
 
 #endif

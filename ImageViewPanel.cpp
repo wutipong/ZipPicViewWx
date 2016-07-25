@@ -237,6 +237,7 @@ void ImageViewPanel::SetImageEntry(Entry *entry) {
   notebook->SetPageText(currentPage, entry->Name());
 
   image = entry->CreateImage();
+  cimgImage = CImgFromWxImage(image);
 
   if (btnFitSize->GetValue())
     FitImage();
@@ -305,5 +306,98 @@ void ImageViewPanel::OnSaveButtonClick(wxCommandEvent &event) {
 
 wxImage ImageViewPanel::CreateScaledImage(const unsigned int &width,
                                           const unsigned int &height) {
-  return image.Scale(width, height, wxIMAGE_QUALITY_HIGH);
+  auto scaled = cimgImage.get_resize(width, height, 1, cimgImage.spectrum(), 5);
+
+  return wxImageFromCImg(scaled);
+}
+
+cimg_library::CImg<unsigned char>
+ImageViewPanel::CImgFromWxImage(const wxImage &image) {
+  auto pixelCount = image.GetWidth() * image.GetHeight();
+  auto dataSize = pixelCount * 3;
+  auto data = image.GetData();
+
+  auto buffer =
+      new unsigned char[image.HasAlpha() ? pixelCount * 4 : pixelCount * 3];
+
+  unsigned char *srcR = data;
+  unsigned char *srcG = data + 1;
+  unsigned char *srcB = data + 2;
+
+  unsigned char *dstR = &buffer[0];
+  unsigned char *dstG = &buffer[pixelCount];
+  unsigned char *dstB = &buffer[pixelCount * 2];
+
+  for (int i = 0; i < pixelCount; i++) {
+    *dstR = *srcR;
+    *dstG = *srcG;
+    *dstB = *srcB;
+
+    srcR += 3;
+    srcG += 3;
+    srcB += 3;
+
+    dstR++;
+    dstG++;
+    dstB++;
+  }
+
+  if (image.HasAlpha()) {
+    unsigned char *srcA = image.GetAlpha();
+    unsigned char *dstA = buffer + (pixelCount * 3);
+    memcpy(dstA, srcA, pixelCount);
+  }
+
+  cimg_library::CImg<char> output(buffer, image.GetWidth(), image.GetHeight(),
+                                  1, image.HasAlpha() ? 4 : 3);
+
+  delete[] buffer;
+
+  return output;
+}
+
+wxImage
+ImageViewPanel::wxImageFromCImg(const cimg_library::CImg<unsigned char> &img) {
+  auto pixelCount = img.width() * img.height();
+  auto dataSize = pixelCount * 3;
+  auto data = (unsigned char *)malloc(dataSize);
+  auto alpha = (unsigned char *)malloc(pixelCount);
+
+  unsigned char *buffer = const_cast<unsigned char *>(img.data());
+
+  unsigned char *dstR = data;
+  unsigned char *dstG = data + 1;
+  unsigned char *dstB = data + 2;
+
+  unsigned char *srcR = &buffer[0];
+  unsigned char *srcG = &buffer[pixelCount];
+  unsigned char *srcB = &buffer[pixelCount * 2];
+
+  for (int i = 0; i < pixelCount; i++) {
+    *dstR = *srcR;
+    *dstG = *srcG;
+    *dstB = *srcB;
+
+    dstR += 3;
+    dstG += 3;
+    dstB += 3;
+
+    srcR++;
+    srcG++;
+    srcB++;
+  }
+
+  if (img.spectrum() == 4) {
+    unsigned char *dstA = (unsigned char *)malloc(pixelCount);
+    unsigned char *srcA = buffer + (pixelCount * 3);
+    memcpy(dstA, srcA, pixelCount);
+  }
+
+  wxImage output(img.width(), img.height());
+  output.SetData(data);
+  if (img.spectrum() == 4) {
+    output.SetAlpha(alpha);
+  }
+
+  return output;
 }
