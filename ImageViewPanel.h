@@ -1,6 +1,7 @@
 #ifndef __IMAGE_VIEW_PANEL__
 #define __IMAGE_VIEW_PANEL__
 
+#include <Magick++.h>
 #include <random>
 #include <wx/button.h>
 #include <wx/filename.h>
@@ -46,6 +47,8 @@ private:
   std::random_device r;
   std::default_random_engine randomEngine;
   std::uniform_int_distribution<int> random;
+
+  Magick::Image mgImage;
 
   void OnCloseButtonClick(wxCommandEvent &event);
   void OnBtnFitSizeToggle(wxCommandEvent &event);

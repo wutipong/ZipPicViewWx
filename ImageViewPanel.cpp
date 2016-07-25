@@ -5,10 +5,10 @@
 #include "res/btn_close.xpm"
 #include "res/btn_fit.xpm"
 #include "res/btn_next.xpm"
+#include "res/btn_pause.xpm"
 #include "res/btn_prev.xpm"
 #include "res/btn_random.xpm"
 #include "res/btn_save.xpm"
-#include <Magick++.h>
 #include <algorithm>
 #include <cmath>
 #include <ctime>
@@ -160,6 +160,9 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
   bufferActual = new unsigned char[bufferLength];
   imgStream.CopyTo(bufferActual, bufferLength);
 
+  Magick::Blob inputBlob(bufferActual, bufferLength);
+  mgImage = Magick::Image(inputBlob);
+
   bitmapStatic = new wxStaticBitmap(scrollPanel, wxID_ANY, wxBitmap(image));
   scrollSizer->Add(bitmapStatic);
 
@@ -258,6 +261,9 @@ void ImageViewPanel::SetImageEntry(Entry *entry) {
   bufferActual = new unsigned char[bufferLength];
   imgStream.CopyTo(bufferActual, bufferLength);
 
+  Magick::Blob inputBlob(bufferActual, bufferLength);
+  mgImage = Magick::Image(inputBlob);
+
   if (btnFitSize->GetValue())
     FitImage();
   else
@@ -325,10 +331,9 @@ void ImageViewPanel::OnSaveButtonClick(wxCommandEvent &event) {
 
 wxImage ImageViewPanel::CreateScaledImage(const unsigned int &width,
                                           const unsigned int &height) {
-  Magick::Blob inputBlob(bufferActual, bufferLength);
-  = Magick::Image mgImage(inputBlob);
   Magick::Geometry geometry{width, height};
 
+  mgImage.resize(geometry);
   Magick::Blob outputBlob;
   mgImage.write(&outputBlob);
 
