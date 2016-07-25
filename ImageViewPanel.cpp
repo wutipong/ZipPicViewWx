@@ -8,9 +8,11 @@
 #include "res/btn_prev.xpm"
 #include "res/btn_random.xpm"
 #include "res/btn_save.xpm"
+#include <Magick++.h>
 #include <algorithm>
 #include <cmath>
 #include <ctime>
+#include <wx/mstream.h>
 #include <wx/notebook.h>
 #include <wx/statline.h>
 #include <wx/wfstream.h>
@@ -147,8 +149,19 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
 
   image = (*entryIter)->CreateImage();
 
-  bitmap = new wxStaticBitmap(scrollPanel, wxID_ANY, wxBitmap(image));
-  scrollSizer->Add(bitmap);
+  if (bufferActual)
+    delete[] bufferActual;
+
+  wxMemoryOutputStream imgStream;
+  entry->WriteStream(imgStream);
+
+  bufferLength = imgStream.GetOutputStreamBuffer()->GetIntPosition();
+
+  bufferActual = new unsigned char[bufferLength];
+  imgStream.CopyTo(bufferActual, bufferLength);
+
+  bitmapStatic = new wxStaticBitmap(scrollPanel, wxID_ANY, wxBitmap(image));
+  scrollSizer->Add(bitmapStatic);
 
   Bind(wxEVT_TIMER, &ImageViewPanel::OnTimerNotify, this);
 
@@ -204,13 +217,14 @@ void ImageViewPanel::FitImage() {
 
 void ImageViewPanel::RefreshImage(const int &percentage) {
   if (percentage == 100) {
-    bitmap->SetBitmap(wxBitmap(image));
+    bitmapStatic->SetBitmap(wxBitmap(image));
   } else {
     int width = (image.GetWidth() * percentage) / 100;
     int height = (image.GetHeight() * percentage) / 100;
 
-    bitmap->SetBitmap(
-        wxBitmap(image.Scale(width, height, wxIMAGE_QUALITY_HIGH)));
+    bitmapStatic->SetBitmap(
+        // wxBitmap(image.Scale(width, height, wxIMAGE_QUALITY_HIGH)));
+        wxBitmap(CreateScaledImage(width, height)));
   }
   scrollSizer->FitInside(scrollPanel);
   spnScale->SetValue(percentage);
@@ -232,6 +246,18 @@ void ImageViewPanel::SetImageEntry(Entry *entry) {
   notebook->SetPageText(currentPage, entry->Name());
 
   image = entry->CreateImage();
+
+  if (bufferActual)
+    delete[] bufferActual;
+
+  wxMemoryOutputStream imgStream;
+  entry->WriteStream(imgStream);
+
+  bufferLength = imgStream.GetOutputStreamBuffer()->GetIntPosition();
+
+  bufferActual = new unsigned char[bufferLength];
+  imgStream.CopyTo(bufferActual, bufferLength);
+
   if (btnFitSize->GetValue())
     FitImage();
   else
@@ -295,4 +321,17 @@ void ImageViewPanel::OnSaveButtonClick(wxCommandEvent &event) {
   wxFileOutputStream output(dialog.GetPath());
   entry->WriteStream(output);
   output.Close();
+}
+
+wxImage ImageViewPanel::CreateScaledImage(const unsigned int &width,
+                                          const unsigned int &height) {
+  Magick::Blob inputBlob(bufferActual, bufferLength);
+  = Magick::Image mgImage(inputBlob);
+  Magick::Geometry geometry{width, height};
+
+  Magick::Blob outputBlob;
+  mgImage.write(&outputBlob);
+
+  wxMemoryInputStream outputStream(outputBlob.data(), outputBlob.length());
+  return wxImage(outputStream);
 }

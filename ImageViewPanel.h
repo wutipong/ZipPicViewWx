@@ -21,7 +21,7 @@ public:
 
 private:
   wxButton *btnClose;
-  wxStaticBitmap *bitmap;
+  wxStaticBitmap *bitmapStatic;
   wxScrolledWindow *scrollPanel;
   wxBoxSizer *scrollSizer;
   wxImage image;
@@ -35,6 +35,10 @@ private:
   wxButton *btnActualSize;
   wxTimer timer;
   wxFileName filename;
+
+  wxBitmap bitmapActual;
+  unsigned char *bufferActual = nullptr;
+  size_t bufferLength;
 
   std::vector<Entry *> entries;
   std::vector<Entry *>::const_iterator entryIter;
@@ -60,6 +64,9 @@ private:
   void Advance(const int &step);
   virtual bool Layout() override;
   void OnTimerNotify(wxTimerEvent &event);
+
+  wxImage CreateScaledImage(const unsigned int &width,
+                            const unsigned int &height);
 };
 
 #endif
