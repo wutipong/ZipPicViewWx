@@ -44,14 +44,12 @@ find_package(wxWidgets COMPONENTS core base REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBZIP REQUIRED libzip)
 pkg_check_modules(LIBARCHIVE REQUIRED libarchive)
-pkg_check_modules(GMPP REQUIRED GraphicsMagick++)
 
 include(${wxWidgets_USE_FILE})
 include_directories(${LIBZIP_INCLUDE_DIRS})
 include_directories(${LIBARCHIVE_INCLUDE_DIRS})
-include_directories(${GMPP_INCLUDE_DIRS})
 
-target_link_libraries(${PROJECT_NAME} ${wxWidgets_LIBRARIES} ${LIBZIP_LIBRARIES} ${LIBARCHIVE_LIBRARIES} ${GMPP_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${wxWidgets_LIBRARIES} ${LIBZIP_LIBRARIES} ${LIBARCHIVE_LIBRARIES})
 
 if (WINDOWS OR MSYS)
 	install( PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION . )

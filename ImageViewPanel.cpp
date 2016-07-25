@@ -149,20 +149,6 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
 
   image = (*entryIter)->CreateImage();
 
-  if (bufferActual)
-    delete[] bufferActual;
-
-  wxMemoryOutputStream imgStream;
-  entry->WriteStream(imgStream);
-
-  bufferLength = imgStream.GetOutputStreamBuffer()->GetIntPosition();
-
-  bufferActual = new unsigned char[bufferLength];
-  imgStream.CopyTo(bufferActual, bufferLength);
-
-  Magick::Blob inputBlob(bufferActual, bufferLength);
-  mgImage = Magick::Image(inputBlob);
-
   bitmapStatic = new wxStaticBitmap(scrollPanel, wxID_ANY, wxBitmap(image));
   scrollSizer->Add(bitmapStatic);
 
@@ -172,6 +158,8 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
     random = std::uniform_int_distribution<int>(1, entries.size());
   else
     random = std::uniform_int_distribution<int>(0, 1);
+
+  SetImageEntry(*entryIter);
 }
 
 void ImageViewPanel::OnCloseButtonClick(wxCommandEvent &event) {
@@ -250,20 +238,6 @@ void ImageViewPanel::SetImageEntry(Entry *entry) {
 
   image = entry->CreateImage();
 
-  if (bufferActual)
-    delete[] bufferActual;
-
-  wxMemoryOutputStream imgStream;
-  entry->WriteStream(imgStream);
-
-  bufferLength = imgStream.GetOutputStreamBuffer()->GetIntPosition();
-
-  bufferActual = new unsigned char[bufferLength];
-  imgStream.CopyTo(bufferActual, bufferLength);
-
-  Magick::Blob inputBlob(bufferActual, bufferLength);
-  mgImage = Magick::Image(inputBlob);
-
   if (btnFitSize->GetValue())
     FitImage();
   else
@@ -331,12 +305,5 @@ void ImageViewPanel::OnSaveButtonClick(wxCommandEvent &event) {
 
 wxImage ImageViewPanel::CreateScaledImage(const unsigned int &width,
                                           const unsigned int &height) {
-  Magick::Geometry geometry{width, height};
-
-  mgImage.resize(geometry);
-  Magick::Blob outputBlob;
-  mgImage.write(&outputBlob);
-
-  wxMemoryInputStream outputStream(outputBlob.data(), outputBlob.length());
-  return wxImage(outputStream);
+  return image.Scale(width, height, wxIMAGE_QUALITY_HIGH);
 }

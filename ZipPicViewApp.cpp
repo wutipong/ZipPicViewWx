@@ -1,13 +1,13 @@
 #include "ZipPicViewApp.h"
 #include "MainFrame.h"
-#include <Magick++.h>
 #include <wx/image.h>
+#include <wx/stdpaths.h>
 
 wxIMPLEMENT_APP(ZipPicViewApp);
 
 bool ZipPicViewApp::OnInit() {
   wxInitAllImageHandlers();
-  Magick::InitializeMagick(nullptr);
+
   log = new wxLogStderr;
   wxLog::SetActiveTarget(log);
   auto frame = new MainFrame();
