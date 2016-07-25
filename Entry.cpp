@@ -11,6 +11,9 @@ wxImage Entry::CreateImage() {
   wxImage output(*stream);
   delete stream;
 
+  if(!output.IsOk())
+    return wxImage(IMG_ERROR_xpm);
+
   return output;
 }
 
