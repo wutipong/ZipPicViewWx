@@ -162,8 +162,6 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
     random = std::uniform_int_distribution<int>(1, entries.size());
   else
     random = std::uniform_int_distribution<int>(0, 1);
-
-  SetImageEntry(*entryIter);
 }
 
 void ImageViewPanel::OnCloseButtonClick(wxCommandEvent &event) {
