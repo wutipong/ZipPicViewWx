@@ -17,6 +17,10 @@
 #include <wx/statline.h>
 #include <wx/wfstream.h>
 
+#ifdef USE_CIMG
+using cimg_library::CImg;
+#endif
+
 ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
                                const wxPoint &pos, const wxSize &size,
                                long style, const wxString &name)
@@ -213,9 +217,7 @@ void ImageViewPanel::RefreshImage(const int &percentage) {
     int width = (image.GetWidth() * percentage) / 100;
     int height = (image.GetHeight() * percentage) / 100;
 
-    bitmapStatic->SetBitmap(
-        // wxBitmap(image.Scale(width, height, wxIMAGE_QUALITY_HIGH)));
-        wxBitmap(CreateScaledImage(width, height)));
+    bitmapStatic->SetBitmap(wxBitmap(CreateScaledImage(width, height)));
   }
   scrollSizer->FitInside(scrollPanel);
   spnScale->SetValue(percentage);
@@ -237,8 +239,12 @@ void ImageViewPanel::SetImageEntry(Entry *entry) {
   notebook->SetPageText(currentPage, entry->Name());
 
   image = entry->CreateImage();
+#ifdef USE_CIMG
   cimgImage = CImgFromWxImage(image);
-
+  if (image.HasAlpha()) {
+    cimgAlpha = CImgAlphaFromWxImage(image);
+  }
+#endif
   if (btnFitSize->GetValue())
     FitImage();
   else
@@ -305,99 +311,79 @@ void ImageViewPanel::OnSaveButtonClick(wxCommandEvent &event) {
 }
 
 wxImage ImageViewPanel::CreateScaledImage(const unsigned int &width,
-                                          const unsigned int &height) {
-  auto scaled = cimgImage.get_resize(width, height, 1, cimgImage.spectrum(), 5);
+                                          const unsigned int &height,
+                                          const bool isHighQuality) {
+  if (width == 0 || height == 0)
+    return wxImage(1, 1);
 
-  return wxImageFromCImg(scaled);
-}
-
-cimg_library::CImg<unsigned char>
-ImageViewPanel::CImgFromWxImage(const wxImage &image) {
-  auto pixelCount = image.GetWidth() * image.GetHeight();
-  auto dataSize = pixelCount * 3;
-  auto data = image.GetData();
-
-  auto buffer =
-      new unsigned char[image.HasAlpha() ? pixelCount * 4 : pixelCount * 3];
-
-  unsigned char *srcR = data;
-  unsigned char *srcG = data + 1;
-  unsigned char *srcB = data + 2;
-
-  unsigned char *dstR = &buffer[0];
-  unsigned char *dstG = &buffer[pixelCount];
-  unsigned char *dstB = &buffer[pixelCount * 2];
-
-  for (int i = 0; i < pixelCount; i++) {
-    *dstR = *srcR;
-    *dstG = *srcG;
-    *dstB = *srcB;
-
-    srcR += 3;
-    srcG += 3;
-    srcB += 3;
-
-    dstR++;
-    dstG++;
-    dstB++;
-  }
+  if (!isHighQuality)
+    return image.Scale(width, height);
+#ifdef USE_CIMG
+  constexpr auto quality = 6;
+  auto scaled =
+      cimgImage.get_resize(width, height, 1, cimgImage.spectrum(), quality);
 
   if (image.HasAlpha()) {
-    unsigned char *srcA = image.GetAlpha();
-    unsigned char *dstA = buffer + (pixelCount * 3);
-    memcpy(dstA, srcA, pixelCount);
+    auto scaledAlpha =
+        cimgAlpha.get_resize(width, height, 1, cimgAlpha.spectrum(), quality);
+    return wxImageFromCImg(scaled, &scaledAlpha);
+  } else {
+    return wxImageFromCImg(scaled);
   }
+#else
+  return image.Scale(width, height, wxIMAGE_QUALITY_HIGH);
+#endif
+}
 
-  cimg_library::CImg<char> output(buffer, image.GetWidth(), image.GetHeight(),
-                                  1, image.HasAlpha() ? 4 : 3);
+#ifdef USE_CIMG
+/* FIXME:
+Currently CImg is used for image processing. CImg expects deinterleaved image
+data which is different than what wxImage expects. This results in having to
+juggle arround the data buffer, dimension value, etc. to make things work.
+Certainly it causes performance impacts.
+CImg should be replaced with other code that process interleaved image
+buffer.
 
-  delete[] buffer;
+This option is disabled by default due to performance problems.
+*/
 
+CImg<unsigned char> ImageViewPanel::CImgFromWxImage(const wxImage &image) {
+  CImg<unsigned char> output(image.GetData(), 3, image.GetWidth(),
+                             image.GetHeight(), 1);
+  output.permute_axes("yzcx");
   return output;
 }
 
-wxImage
-ImageViewPanel::wxImageFromCImg(const cimg_library::CImg<unsigned char> &img) {
-  auto pixelCount = img.width() * img.height();
-  auto dataSize = pixelCount * 3;
+CImg<unsigned char> ImageViewPanel::CImgAlphaFromWxImage(const wxImage &image) {
+  if (!image.HasAlpha())
+    return CImg<unsigned char>();
+
+  return CImg<unsigned char>(image.GetAlpha(), image.GetWidth(),
+                             image.GetHeight(), 1, 1);
+}
+
+wxImage ImageViewPanel::wxImageFromCImg(const CImg<unsigned char> &img,
+                                        CImg<unsigned char> *alpha) {
+  auto width = img.width();
+  auto height = img.height();
+  auto dataSize = width * height * 3;
+
+  CImg<unsigned char> rearranged = img.get_permute_axes("cxyz");
+
   auto data = (unsigned char *)malloc(dataSize);
-  auto alpha = (unsigned char *)malloc(pixelCount);
+  memcpy(data, rearranged.data(), dataSize);
 
-  unsigned char *buffer = const_cast<unsigned char *>(img.data());
-
-  unsigned char *dstR = data;
-  unsigned char *dstG = data + 1;
-  unsigned char *dstB = data + 2;
-
-  unsigned char *srcR = &buffer[0];
-  unsigned char *srcG = &buffer[pixelCount];
-  unsigned char *srcB = &buffer[pixelCount * 2];
-
-  for (int i = 0; i < pixelCount; i++) {
-    *dstR = *srcR;
-    *dstG = *srcG;
-    *dstB = *srcB;
-
-    dstR += 3;
-    dstG += 3;
-    dstB += 3;
-
-    srcR++;
-    srcG++;
-    srcB++;
-  }
-
-  if (img.spectrum() == 4) {
-    unsigned char *dstA = (unsigned char *)malloc(pixelCount);
-    unsigned char *srcA = buffer + (pixelCount * 3);
-    memcpy(dstA, srcA, pixelCount);
-  }
-
-  wxImage output(img.width(), img.height());
+  wxImage output(width, height);
   output.SetData(data);
-  if (img.spectrum() == 4) {
-    output.SetAlpha(alpha);
-  }
 
+  if (alpha != nullptr) {
+    auto alphaSize = width * height;
+
+    auto alphaData = (unsigned char *)malloc(alphaSize);
+    memcpy(alphaData, alpha->data(), alphaSize);
+
+    output.SetAlpha(alphaData);
+  }
   return output;
 }
+#endif

@@ -1,6 +1,7 @@
 #ifndef __IMAGE_VIEW_PANEL__
 #define __IMAGE_VIEW_PANEL__
 
+#include "Entry.h"
 #include <random>
 #include <wx/button.h>
 #include <wx/filename.h>
@@ -9,8 +10,9 @@
 #include <wx/timer.h>
 #include <wx/wx.h>
 
+#ifdef USE_CIMG
 #include "CImg/CImg.h"
-#include "Entry.h"
+#endif
 
 class ImageViewPanel : public wxPanel {
 public:
@@ -44,7 +46,18 @@ private:
   std::default_random_engine randomEngine;
   std::uniform_int_distribution<int> random;
 
+#ifdef USE_CIMG
   cimg_library::CImg<unsigned char> cimgImage;
+  cimg_library::CImg<unsigned char> cimgAlpha;
+
+  static cimg_library::CImg<unsigned char>
+  CImgFromWxImage(const wxImage &image);
+  static cimg_library::CImg<unsigned char>
+  CImgAlphaFromWxImage(const wxImage &image);
+  static wxImage
+  wxImageFromCImg(const cimg_library::CImg<unsigned char> &img,
+                  cimg_library::CImg<unsigned char> *alpha = nullptr);
+#endif
 
   void OnCloseButtonClick(wxCommandEvent &event);
   void OnBtnFitSizeToggle(wxCommandEvent &event);
@@ -65,11 +78,8 @@ private:
   void OnTimerNotify(wxTimerEvent &event);
 
   wxImage CreateScaledImage(const unsigned int &width,
-                            const unsigned int &height);
-
-  static cimg_library::CImg<unsigned char>
-  CImgFromWxImage(const wxImage &image);
-  static wxImage wxImageFromCImg(const cimg_library::CImg<unsigned char> &img);
+                            const unsigned int &height,
+                            const bool isHighQuality = false);
 };
 
 #endif
