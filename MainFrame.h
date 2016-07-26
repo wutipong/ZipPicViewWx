@@ -29,8 +29,6 @@ private:
   wxTextCtrl *currentFileCtrl;
   wxButton *dirBrowseBtn;
   wxButton *zipBrowseBtn;
-  wxGauge *progress;
-  wxStaticText *progressDescText;
 
   wxThreadIdType threadId;
   ThumbnailLoadThread *loadThread;

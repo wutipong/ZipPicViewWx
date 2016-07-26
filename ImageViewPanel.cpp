@@ -1,3 +1,5 @@
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+
 #include "ImageViewPanel.h"
 
 #include "res/btn_actual.xpm"

@@ -1,3 +1,5 @@
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+
 #include "MainFrame.h"
 #include "ArchiveExtractor.h"
 #include "FileEntry.h"
@@ -40,19 +42,9 @@ MainFrame::MainFrame() : wxFrame(NULL, wxID_ANY, "ZipPicView") {
 
   auto statusBar = CreateStatusBar();
   statusBar->SetStatusText("Idle");
-  /* progress = new wxGauge(panel, wxID_ANY, 100);
-  progressDescText = new wxStaticText(panel, wxID_ANY, "Idle");
-  progressDescText->SetMinSize({250, 20});
-
-  auto progressSizer = new wxBoxSizer(wxHORIZONTAL);
-  progressSizer->AddStretchSpacer();
-  progressSizer->Add(progressDescText, 0, wxEXPAND | wxALL | wxALIGN_RIGHT, 5);
-  progressSizer->AddSpacer(5);
-  progressSizer->Add(progress, 0, wxEXPAND | wxALL | wxALIGN_RIGHT, 5);*/
 
   outerSizer->Add(toolSizer, 0, wxEXPAND | wxALL, 5);
   outerSizer->Add(notebook, 1, wxEXPAND | wxALL, 5);
-  // outerSizer->Add(progressSizer, 0);
 
   splitter = new wxSplitterWindow(notebook, wxID_ANY);
   splitter->Bind(wxEVT_SPLITTER_DOUBLECLICKED,
@@ -157,11 +149,6 @@ void MainFrame::OnTreeSelectionChanged(wxTreeEvent &event) {
     grid->Add(btnSizer, 0, wxALL | wxEXPAND, 5);
   }
 
-  /*progress->SetRange(loadEntries.size());
-  progressDescText->SetLabelText(wxString::Format("Loading Thumbnail %i of %i",
-                                                  1,
-  (int)loadEntries.size()));*/
-
   GetStatusBar()->SetStatusText(wxString::Format("Loading Thumbnail %i of %i",
                                                  1, (int)loadEntries.size()));
 
@@ -250,10 +237,8 @@ template <class T>
 void MainFrame::LoadEntryFromFile(const wxFileName &filename) {
   wxProgressDialog progress("Loading", "Now Loading", 4, this);
 
-  auto entry = T::Create(filename, [&progress](){
-      progress.Pulse();
-  });
-  if(entry == nullptr) {
+  auto entry = T::Create(filename, [&progress]() { progress.Pulse(); });
+  if (entry == nullptr) {
     wxMessageBox("Failed to load file", "Error", wxICON_ERROR);
     return;
   }
@@ -286,11 +271,6 @@ void MainFrame::OnThumbnailLoadUpdated(wxThreadEvent &event) {
   if (data.id != threadId)
     return;
 
-  /*
-  progress->SetValue(data.index);
-  progressDescText->SetLabelText(wxString::Format("Loading Thumbnail %i of %i",
-                                                  data.index + 2, data.total));
-  */
   GetStatusBar()->SetStatusText(wxString::Format("Loading Thumbnail %i of %i",
                                                  data.index + 1, data.total));
   if (data.index < imgButtons.size())
@@ -298,9 +278,6 @@ void MainFrame::OnThumbnailLoadUpdated(wxThreadEvent &event) {
 }
 
 void MainFrame::OnThumbnailLoadDone(wxThreadEvent &event) {
-  // progressDescText->SetLabelText("Idle");
-  // progress->SetValue(progress->GetRange());
-
   if (event.GetExtraLong() != threadId)
     return;
 
