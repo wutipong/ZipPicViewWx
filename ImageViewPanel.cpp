@@ -11,6 +11,7 @@
 #include "res/btn_prev.xpm"
 #include "res/btn_random.xpm"
 #include "res/btn_save.xpm"
+#include "res/img_picture.xpm"
 #include <algorithm>
 #include <cmath>
 #include <ctime>
@@ -27,7 +28,7 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
                                const wxPoint &pos, const wxSize &size,
                                long style, const wxString &name)
     : wxPanel(parent, id, pos, size, style, name), timer(this),
-      randomEngine(r()) {
+      randomEngine(r()), image(IMG_PICTURE_xpm) {
   auto outerSizer = new wxBoxSizer(wxVERTICAL);
   auto btnSizer = new wxBoxSizer(wxHORIZONTAL);
   btnClose = new wxButton(this, wxID_CLOSE, "Close", wxDefaultPosition,
@@ -152,8 +153,6 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
   }
 
   entryIter = std::find(entries.begin(), entries.end(), entry);
-
-  image = (*entryIter)->CreateImage();
 
   bitmapStatic = new wxStaticBitmap(scrollPanel, wxID_ANY, wxBitmap(image));
   scrollSizer->Add(bitmapStatic);
@@ -309,6 +308,8 @@ void ImageViewPanel::OnSaveButtonClick(wxCommandEvent &event) {
   entry->WriteStream(output);
   output.Close();
 }
+
+void ImageViewPanel::SwitchToTheActualImage() { SetImageEntry(*entryIter); }
 
 wxImage ImageViewPanel::CreateScaledImage(const unsigned int &width,
                                           const unsigned int &height,

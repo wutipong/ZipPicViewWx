@@ -22,6 +22,8 @@ public:
                  long style = wxTAB_TRAVERSAL,
                  const wxString &name = "ImageViewPanel");
 
+  void SwitchToTheActualImage();
+
 private:
   wxButton *btnClose;
   wxStaticBitmap *bitmapStatic;

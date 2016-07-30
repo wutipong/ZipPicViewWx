@@ -179,6 +179,7 @@ void MainFrame::OnImageButtonClick(wxCommandEvent &event) {
   progress.Update(3);
   notebook->AddPage(bitmapCtl, childEntry->Name());
   progress.Update(4);
+  bitmapCtl->SwitchToTheActualImage();
   notebook->SetSelection(page);
 }
 
