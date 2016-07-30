@@ -36,18 +36,19 @@ wxInputStream *ZipEntry::GetInputStream() {
   if (IsDirectory() || !zipFile)
     return nullptr;
 
-  struct zip_stat stat;
-  zip_stat(zipFile, innerPath, 0, &stat);
+  if(!buffer) {
+      struct zip_stat stat;
+      zip_stat(zipFile, innerPath, 0, &stat);
 
-  auto file = zip_fopen(zipFile, innerPath, 0);
-  auto size = stat.size;
-  auto buffer = new unsigned char[size];
-  auto read = zip_fread(file, buffer, size);
+      auto file = zip_fopen(zipFile, innerPath, 0);
+      size = stat.size;
 
+      buffer = new unsigned char[size];
+      auto read = zip_fread(file, buffer, size);
+      zip_fclose(file);
+  }
   auto output = new wxMemoryInputStream(buffer, size);
 
-  delete[] buffer;
-  zip_fclose(file);
   mutex->Unlock();
   return output;
 }
@@ -60,6 +61,7 @@ ZipEntry::~ZipEntry() {
     mutex->Unlock();
     delete mutex;
   }
+  delete[] buffer;
 }
 
 ZipEntry *ZipEntry::Create(const wxFileName &filename,

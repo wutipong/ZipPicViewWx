@@ -31,6 +31,8 @@ private:
   zip_t *zipFile;
   wxString innerPath;
   wxMutex *mutex;
+  unsigned char* buffer = nullptr;
+  size_t size;
 
 protected:
   virtual wxInputStream *GetInputStream() override;
