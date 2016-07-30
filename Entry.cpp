@@ -1,3 +1,5 @@
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+
 #include "Entry.h"
 #include <wx/icon.h>
 #include "res/img_error.xpm"
