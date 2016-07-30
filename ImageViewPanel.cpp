@@ -163,6 +163,10 @@ ImageViewPanel::ImageViewPanel(wxWindow *parent, Entry *entry, wxWindowID id,
     random = std::uniform_int_distribution<int>(1, entries.size());
   else
     random = std::uniform_int_distribution<int>(0, 1);
+
+  #ifdef USE_CIMG
+    cimgImage = CImgFromWxImage(image);
+  #endif
 }
 
 void ImageViewPanel::OnCloseButtonClick(wxCommandEvent &event) {
@@ -216,7 +220,7 @@ void ImageViewPanel::RefreshImage(const int &percentage) {
     int width = (image.GetWidth() * percentage) / 100;
     int height = (image.GetHeight() * percentage) / 100;
 
-    bitmapStatic->SetBitmap(wxBitmap(CreateScaledImage(width, height)));
+    bitmapStatic->SetBitmap(wxBitmap(CreateScaledImage(width, height, true)));
   }
   scrollSizer->FitInside(scrollPanel);
   spnScale->SetValue(percentage);
