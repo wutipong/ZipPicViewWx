@@ -37,15 +37,15 @@ wxInputStream *ZipEntry::GetInputStream() {
     return nullptr;
 
   if(!buffer) {
-      struct zip_stat stat;
-      zip_stat(zipFile, innerPath, 0, &stat);
+    struct zip_stat stat;
+    zip_stat(zipFile, innerPath, 0, &stat);
 
-      auto file = zip_fopen(zipFile, innerPath, 0);
-      size = stat.size;
+    auto file = zip_fopen(zipFile, innerPath, 0);
+    size = stat.size;
 
-      buffer = new unsigned char[size];
-      auto read = zip_fread(file, buffer, size);
-      zip_fclose(file);
+    buffer = new unsigned char[size];
+    auto read = zip_fread(file, buffer, size);
+    zip_fclose(file);
   }
   auto output = new wxMemoryInputStream(buffer, size);
 
