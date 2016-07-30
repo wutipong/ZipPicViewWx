@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 2.6)
 project(ZipPicView CXX)
 set(CMAKE_CXX_STANDARD 11)
 
+option(USE_CIMG "Use CImg for image scaling (much slower, disabled by defaults)")
+
 set(SRC Entry.cpp MainFrame.cpp ZipPicViewApp.cpp ImageViewPanel.cpp ZipEntry.cpp
 FileEntry.cpp ThumbnailLoadThread.cpp ThumbnailLoadThread.h ArchiveExtractor.cpp)
 
@@ -50,6 +52,9 @@ include_directories(${LIBZIP_INCLUDE_DIRS})
 include_directories(${LIBARCHIVE_INCLUDE_DIRS})
 
 target_link_libraries(${PROJECT_NAME} ${wxWidgets_LIBRARIES} ${LIBZIP_LIBRARIES} ${LIBARCHIVE_LIBRARIES})
+if(USE_CIMG)
+  add_definitions(-DUSE_CIMG)
+endif()
 
 if (WINDOWS OR MSYS)
 	install( PROGRAMS ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION . )
