@@ -173,7 +173,7 @@ void ImageViewPanel::OnCloseButtonClick(wxCommandEvent &event) {
   auto notebook = dynamic_cast<wxNotebook *>(GetParent());
   if (!notebook)
     return;
-  auto currentPage = notebook->GetSelection();
+  auto currentPage = notebook->FindPage(this);
   if (currentPage == wxNOT_FOUND)
     return;
   notebook->DeletePage(currentPage);
@@ -236,7 +236,7 @@ void ImageViewPanel::SetImageEntry(Entry *entry) {
   auto notebook = dynamic_cast<wxNotebook *>(GetParent());
   if (!notebook)
     return;
-  auto currentPage = notebook->GetSelection();
+  auto currentPage = notebook->FindPage(this);
   if (currentPage == wxNOT_FOUND)
     return;
   notebook->SetPageText(currentPage, entry->Name());
