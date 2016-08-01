@@ -17,7 +17,7 @@ public:
   ZipEntry(const ZipEntry &) = delete;
 
   static ZipEntry *Create(const wxFileName &filename,
-                          std::function<void()> updateFnc);
+                          std::function<bool()> updateFnc);
 
   virtual ~ZipEntry();
   virtual bool IsRoot() const override { return innerPath.IsEmpty(); }
@@ -31,7 +31,7 @@ private:
   zip_t *zipFile;
   wxString innerPath;
   wxMutex *mutex;
-  unsigned char* buffer = nullptr;
+  unsigned char *buffer = nullptr;
   size_t size;
 
 protected:

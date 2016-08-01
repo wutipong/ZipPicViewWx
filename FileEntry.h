@@ -19,7 +19,7 @@ public:
   FileEntry(const FileEntry &) = delete;
   virtual ~FileEntry();
   static FileEntry *Create(const wxFileName &filename,
-                           std::function<void()> updateFnc);
+                           std::function<bool()> updateFnc);
 
   virtual bool IsRoot() const override { return isRoot; }
 

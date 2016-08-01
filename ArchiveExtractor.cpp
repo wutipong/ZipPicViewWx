@@ -7,7 +7,7 @@
 #include <wx/stdpaths.h>
 
 Entry *ArchiveExtractor::Create(const wxFileName &filename,
-                                std::function<void()> updateFnc) {
+                                std::function<bool()> updateFnc) {
   wxFile inputFile(filename.GetFullPath());
   auto strTempDir = wxStandardPaths::Get().GetTempDir();
 
@@ -31,8 +31,11 @@ Entry *ArchiveExtractor::Create(const wxFileName &filename,
   if ((r = archive_read_open_fd(a, inputFile.fd(), 10240)))
     return nullptr;
 
+  bool success = true;
   while ((r = archive_read_next_header(a, &entry)) != ARCHIVE_EOF) {
-    updateFnc();
+    success = updateFnc();
+    if (!success)
+      break;
     if (archive_entry_size(entry) < 0) {
       continue;
     }
@@ -60,5 +63,7 @@ Entry *ArchiveExtractor::Create(const wxFileName &filename,
   archive_read_close(a);
   archive_read_free(a);
 
+  if (!success)
+    return nullptr;
   return FileEntry::Create(tempDirName, updateFnc);
 }

@@ -236,15 +236,16 @@ void MainFrame::OnZipBrowsePressed(wxCommandEvent &event) {
 
 template <class T>
 void MainFrame::LoadEntryFromFile(const wxFileName &filename) {
-  wxProgressDialog progress("Loading", "Now Loading", 4, this);
+  wxProgressDialog progress("Loading", "Now Loading", 4, this,
+                            wxPD_CAN_ABORT | wxPD_AUTO_HIDE | wxPD_APP_MODAL);
 
-  auto entry = T::Create(filename, [&progress]() { progress.Pulse(); });
+  auto entry = T::Create(filename, [&progress]() { return progress.Pulse(); });
   if (entry == nullptr) {
-    wxMessageBox("Failed to load file", "Error", wxICON_ERROR);
+    // wxMessageBox("Failed to load file", "Error", wxICON_ERROR);
     return;
   }
   SetEntry(std::shared_ptr<Entry>(entry));
-  progress.Pulse();
+
   currentFileCtrl->SetValue(filename.GetFullPath());
 }
 void MainFrame::SetEntry(std::shared_ptr<Entry> entry) {

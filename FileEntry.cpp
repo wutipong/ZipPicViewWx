@@ -2,9 +2,10 @@
 #include <wx/wfstream.h>
 
 FileEntry *FileEntry::Create(const wxFileName &filename,
-                             std::function<void()> updateFnc) {
+                             std::function<bool()> updateFnc) {
   wxArrayString paths;
 
+  bool cancelled = false;
   auto root = new FileEntry(filename);
   wxDir::GetAllFiles(filename.GetPath(), &paths);
   auto cmp = [](const wxFileName &f1, const wxFileName &f2) {
@@ -15,7 +16,17 @@ FileEntry *FileEntry::Create(const wxFileName &filename,
 
   for (int i = 0; i < paths.Count(); i++) {
     AddChildrenFromPath(entryMap, paths.Item(i));
-    updateFnc();
+    bool loadNext = updateFnc();
+
+    if (!loadNext) {
+      cancelled = true;
+      break;
+    }
+  }
+
+  if (cancelled) {
+    delete root;
+    return nullptr;
   }
 
   root->SortChildren();

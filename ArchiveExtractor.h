@@ -7,7 +7,8 @@
 
 class ArchiveExtractor {
 public:
-  static Entry *Create(const wxFileName &filename, std::function<void()> updateFnc);
+  static Entry *Create(const wxFileName &filename,
+                       std::function<bool()> updateFnc);
 };
 
 #endif

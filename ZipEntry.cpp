@@ -36,7 +36,7 @@ wxInputStream *ZipEntry::GetInputStream() {
   if (IsDirectory() || !zipFile)
     return nullptr;
 
-  if(!buffer) {
+  if (!buffer) {
     struct zip_stat stat;
     zip_stat(zipFile, innerPath, 0, &stat);
 
@@ -65,7 +65,7 @@ ZipEntry::~ZipEntry() {
 }
 
 ZipEntry *ZipEntry::Create(const wxFileName &filename,
-                           std::function<void()> updateFnc) {
+                           std::function<bool()> updateFnc) {
   wxFile file(filename.GetFullPath());
 
   int error;
@@ -89,11 +89,18 @@ ZipEntry *ZipEntry::Create(const wxFileName &filename,
   std::map<wxString, ZipEntry *> entryMap;
 
   entryMap[""] = root;
+  bool success = true;
   for (auto &path : innerPaths) {
-    updateFnc();
+    success = updateFnc();
+    if (!success)
+      break;
     AddChildrenFromPath(zipFile, mutex, entryMap, path);
   }
 
+  if (!success) {
+    delete root;
+    return nullptr;
+  }
   root->SortChildren();
   return root;
 }
