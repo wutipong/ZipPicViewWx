@@ -32,7 +32,7 @@ Entry *ArchiveExtractor::Create(const wxFileName &filename,
     return nullptr;
 
   bool success = true;
-  while ((r = archive_read_next_header(a, &entry)) != ARCHIVE_EOF) {
+  while ((r = archive_read_next_header(a, &entry)) == ARCHIVE_OK) {
     success = updateFnc();
     if (!success)
       break;
